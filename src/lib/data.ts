@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -186,6 +187,10 @@ export const messages: Message[] = [
     user: users[2],
   },
 ];
+
+export function addMessage(message: Message) {
+  messages.push(message);
+}
 
 const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
 

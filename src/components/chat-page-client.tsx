@@ -1,8 +1,10 @@
 
+
 'use client';
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
+import { addMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
@@ -56,8 +58,7 @@ export function ChatPageClient({
         message.dmId = [currentUser.id, (chatTarget as User).id].sort().join('-');
     }
 
-    // In a real app, you'd send this to a server.
-    // For now, we'll just update the local state.
+    addMessage(message);
     setMessages((prev) => [...prev, message]);
     setNewMessage('');
   };
