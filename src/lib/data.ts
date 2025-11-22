@@ -4,6 +4,23 @@
 
 import { useState, useEffect } from 'react';
 
+// A simple event emitter for our mock data
+class EventEmitter<T> {
+  private listeners: ((data: T) => void)[] = [];
+
+  subscribe(listener: (data: T) => void) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter((l) => l !== listener);
+    };
+  }
+
+  emit(data: T) {
+    this.listeners.forEach((listener) => listener(data));
+  }
+}
+
+
 export type User = {
   id: string;
   name: string;
@@ -27,7 +44,7 @@ export type Message = {
   dmId?: string;
 };
 
-export const users: User[] = [
+export let users: User[] = [
   {
     id: '1',
     name: 'Alex',
@@ -84,7 +101,7 @@ export const channels: Channel[] = [
   { id: '3', name: 'random' },
 ];
 
-export const messages: Message[] = [
+let messages: Message[] = [
   // Channel 1: general
   {
     id: 'msg-ch1-1',
@@ -188,8 +205,23 @@ export const messages: Message[] = [
   },
 ];
 
+
+const messageEmitter = new EventEmitter<Message[]>();
+
 export function addMessage(message: Message) {
   messages.push(message);
+  messageEmitter.emit([...messages]);
+}
+
+export function useMessages() {
+    const [currentMessages, setMessages] = useState(messages);
+
+    useEffect(() => {
+        const unsubscribe = messageEmitter.subscribe(setMessages);
+        return () => unsubscribe();
+    }, []);
+
+    return currentMessages;
 }
 
 const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';

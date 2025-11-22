@@ -22,16 +22,11 @@ interface ChatPageClientProps {
 
 export function ChatPageClient({
   currentUser,
-  messages: initialMessages,
+  messages,
   chatTarget,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-  const [messages, setMessages] = React.useState(initialMessages);
   const [newMessage, setNewMessage] = React.useState('');
-
-  React.useEffect(() => {
-    setMessages(initialMessages);
-  }, [initialMessages]);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -59,7 +54,6 @@ export function ChatPageClient({
     }
 
     addMessage(message);
-    setMessages((prev) => [...prev, message]);
     setNewMessage('');
   };
   
