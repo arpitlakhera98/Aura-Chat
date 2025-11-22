@@ -6,7 +6,7 @@ import type { Message, User, Channel } from '@/lib/data';
 import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel, updateChannel, getUserById } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut, UserX, Eye } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -251,57 +251,173 @@ interface ChatPageClientProps {
   onClearChat?: () => void;
 }
 
-const ChannelMembersPopover = ({ channel }: { channel: Channel }) => {
-    const [members, setMembers] = React.useState<User[]>([]);
+const ChannelMembersPopover = ({
+  channel,
+  currentUser,
+}: {
+  channel: Channel;
+  currentUser: User;
+}) => {
+  const [members, setMembers] = React.useState<User[]>([]);
+  const router = useRouter();
+  const { toast } = useToast();
+  const [userToRemove, setUserToRemove] = React.useState<User | null>(null);
+  const [userToBlock, setUserToBlock] = React.useState<User | null>(null);
 
-    React.useEffect(() => {
-        const memberDetails = channel.memberIds
-            .map(id => getUserById(id))
-            .filter((user): user is User => !!user);
-        setMembers(memberDetails);
-    }, [channel.memberIds]);
+  React.useEffect(() => {
+    const memberDetails = channel.memberIds
+      .map((id) => getUserById(id))
+      .filter((user): user is User => !!user);
+    setMembers(memberDetails);
+  }, [channel.memberIds]);
 
-    return (
-        <Popover>
-            <PopoverTrigger asChild>
-                <div className="flex items-center gap-3 cursor-pointer">
-                    <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
-                        <AvatarImage src={channel.avatarUrl} />
-                        <AvatarFallback>#</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <span className="text-lg font-semibold">{channel.name}</span>
-                        <p className="text-xs text-muted-foreground">{channel.memberIds.length} members</p>
-                    </div>
-                </div>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 bg-black/80 border-white/10 text-white">
-                <div className="grid gap-4">
-                    <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Members</h4>
-                        <p className="text-sm text-muted-foreground">
-                            Users in this channel.
-                        </p>
-                    </div>
-                    <ScrollArea className="h-48">
-                        <div className="space-y-3 pr-4">
-                            {members.map(member => (
-                                <div key={member.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10">
-                                    <Avatar className="h-9 w-9">
-                                        <AvatarImage src={member.avatarUrl} />
-                                        <AvatarFallback>{member.name[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <Link href={`/profile/${member.id}`} className="font-medium hover:underline">
-                                        {member.name}
-                                    </Link>
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
+  const isAdmin = channel.adminId === currentUser.id;
+
+  const handleRemoveClick = (member: User) => {
+    setUserToRemove(member);
+  };
+
+  const handleBlockClick = (member: User) => {
+    setUserToBlock(member);
+  };
+
+  const confirmRemoveUser = () => {
+    if (userToRemove) {
+      removeUserFromChannel(channel.id, userToRemove.id);
+      toast({
+        title: 'User Removed',
+        description: `${userToRemove.name} has been removed from the channel.`,
+      });
+      setUserToRemove(null);
+    }
+  };
+  
+  const confirmBlockUser = () => {
+    if (userToBlock) {
+      blockUser(userToBlock.id);
+      toast({
+        variant: 'destructive',
+        title: 'User Blocked',
+        description: `You have blocked ${userToBlock.name}.`,
+      });
+      setUserToBlock(null);
+    }
+  };
+
+
+  return (
+    <>
+      <Popover>
+        <PopoverTrigger asChild>
+          <div className="flex items-center gap-3 cursor-pointer">
+            <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
+              <AvatarImage src={channel.avatarUrl} />
+              <AvatarFallback>#</AvatarFallback>
+            </Avatar>
+            <div>
+              <span className="text-lg font-semibold">{channel.name}</span>
+              <p className="text-xs text-muted-foreground">
+                {channel.memberIds.length} members
+              </p>
+            </div>
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 bg-black/80 border-white/10 text-white">
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">Members</h4>
+              <p className="text-sm text-muted-foreground">
+                Users in this channel.
+              </p>
+            </div>
+            <ScrollArea className="h-48">
+              <div className="space-y-1 pr-2">
+                {members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-white/10 group"
+                  >
+                    <Link
+                      href={`/profile/${member.id}`}
+                      className="flex items-center gap-3"
+                    >
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={member.avatarUrl} />
+                        <AvatarFallback>{member.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium hover:underline">
+                        {member.name}
+                      </span>
+                      {member.id === channel.adminId && (
+                        <span className="text-xs text-primary">(Admin)</span>
+                      )}
+                    </Link>
+                    {member.id !== currentUser.id && (
+                       <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                            <DropdownMenuItem onClick={() => router.push(`/profile/${member.id}`)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Profile
+                            </DropdownMenuItem>
+                            {isAdmin && member.id !== channel.adminId && (
+                                <DropdownMenuItem onClick={() => handleRemoveClick(member)}>
+                                    <UserX className="mr-2 h-4 w-4 text-red-400" />
+                                    <span className="text-red-400">Remove from Channel</span>
+                                </DropdownMenuItem>
+                            )}
+                             <DropdownMenuItem onClick={() => handleBlockClick(member)}>
+                                <ShieldBan className="mr-2 h-4 w-4 text-red-400" />
+                                <span className="text-red-400">Block User</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      {/* Remove User Dialog */}
+      <AlertDialog open={!!userToRemove} onOpenChange={(open) => !open && setUserToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {userToRemove?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {userToRemove?.name} from this channel? They will need to be invited back.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveUser} className="bg-destructive hover:bg-destructive/90">Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Block User Dialog */}
+      <AlertDialog open={!!userToBlock} onOpenChange={(open) => !open && setUserToBlock(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Block {userToBlock?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Blocked users will not be able to send you messages. This contact will not be notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmBlockUser} className="bg-destructive hover:bg-destructive/90">Block</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 };
 
 
@@ -565,7 +681,7 @@ export function ChatPageClient({
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
                 {channel ? (
-                    <ChannelMembersPopover channel={channel} />
+                    <ChannelMembersPopover channel={channel} currentUser={currentUser} />
                 ) : (
                 <div className="flex items-center gap-4">
                     <Link href={`/profile/${chatTarget.id}`}>
@@ -596,7 +712,7 @@ export function ChatPageClient({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
-                            {channel && (
+                            {channel && isAdmin && (
                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
                                     <UserPlus className="h-4 w-4" />
                                     Add members
@@ -608,7 +724,7 @@ export function ChatPageClient({
                                     Edit channel
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator className="bg-white/10"/>
+                            {isAdmin && <DropdownMenuSeparator className="bg-white/10"/>}
                             <DropdownMenuItem onClick={() => setIsClearChatDialogOpen(true)} className="flex items-center gap-2">
                                 <Trash2 className="h-4 w-4" />
                                 Clear chat
@@ -896,5 +1012,3 @@ export function ChatPageClient({
     </div>
   );
 }
-
-    
