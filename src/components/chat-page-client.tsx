@@ -3,10 +3,10 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2 } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,18 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -44,6 +56,8 @@ export function ChatPageClient({
   const [hasCameraPermission, setHasCameraPermission] = React.useState(true);
   const { toast } = useToast();
   const [displayName, setDisplayName] = React.useState(chatTarget.name);
+  const [nicknameInput, setNicknameInput] = React.useState('');
+  const [isNicknameDialogOpen, setIsNicknameDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -51,20 +65,21 @@ export function ChatPageClient({
     }
   }, [messages]);
 
+  const updateDisplayName = React.useCallback(() => {
+    if (!isChannel) {
+      const nickname = getUserNickname(chatTarget.id);
+      setDisplayName(nickname || chatTarget.name);
+    }
+  }, [chatTarget, isChannel]);
+
   React.useEffect(() => {
-    const updateDisplayName = () => {
-      if (!isChannel) {
-        const nickname = getUserNickname(chatTarget.id);
-        setDisplayName(nickname || chatTarget.name);
-      }
-    };
     updateDisplayName();
 
     window.addEventListener('local-storage-changed', updateDisplayName);
     return () => {
       window.removeEventListener('local-storage-changed', updateDisplayName);
     };
-  }, [chatTarget, isChannel]);
+  }, [updateDisplayName]);
 
   React.useEffect(() => {
     if (showCamera) {
@@ -209,6 +224,22 @@ export function ChatPageClient({
         description: `Attaching a ${type} is not yet supported.`,
     });
   }
+
+  const openNicknameDialog = () => {
+    const nickname = getUserNickname(chatTarget.id);
+    setNicknameInput(nickname || '');
+    setIsNicknameDialogOpen(true);
+  }
+
+  const handleNicknameSave = () => {
+    setUserNickname(chatTarget.id, nicknameInput);
+    updateDisplayName(); // Directly call the update function
+    setIsNicknameDialogOpen(false);
+    toast({
+        title: "Nickname Updated",
+        description: `The nickname for ${chatTarget.name} has been set.`,
+    });
+  };
   
   if (!currentUser) {
     return <div>Loading chat...</div>;
@@ -233,16 +264,23 @@ export function ChatPageClient({
                     <span className="text-lg">{displayName}</span>
                 </div>
                 ) : (
-                <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border-2 border-primary/50">
-                    <AvatarImage src={(chatTarget as User).avatarUrl} />
-                    <AvatarFallback>{displayName[0]}</AvatarFallback>
-                    </Avatar>
+                <div className="flex items-center gap-4">
+                    <Link href={`/profile/${chatTarget.id}`}>
+                        <Avatar className="h-12 w-12 border-2 border-primary/50">
+                        <AvatarImage src={(chatTarget as User).avatarUrl} />
+                        <AvatarFallback>{displayName[0]}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                     <div className="flex flex-col">
-                        <span className="font-semibold text-base">{displayName}</span>
+                        <div className="flex items-center gap-2">
+                           <span className="font-semibold text-base">{displayName}</span>
+                           <Button variant="ghost" size="icon" onClick={openNicknameDialog} className="h-6 w-6">
+                               <Edit2 className="h-3 w-3" />
+                           </Button>
+                        </div>
                         {status && <span className="text-xs text-primary">{status}</span>}
                     </div>
-                </Link>
+                </div>
                 )}
                  <div className="ml-auto flex items-center gap-2">
                     <DropdownMenu>
@@ -256,13 +294,9 @@ export function ChatPageClient({
                             <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
                                 Chat theme
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Share user')}>
-                                Share user
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Remove user')}>
-                                Remove user
-                            </DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
+                            {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
+                            <DropdownMenuSeparator className="bg-white/10"/>
+                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
                                 Clear chat
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/10"/>
@@ -286,7 +320,6 @@ export function ChatPageClient({
 
            const showAvatar = !isSender && (!prevMessage || prevMessage.user.id !== message.user.id);
            const isFirstInGroup = !prevMessage || prevMessage.user.id !== message.user.id;
-           const isLastInGroup = !nextMessage || nextMessage.user.id !== message.user.id;
            
           return (
             <div
@@ -297,10 +330,12 @@ export function ChatPageClient({
               )}
             >
               {showAvatar ? (
-                  <Avatar className="h-8 w-8 self-end mb-1">
-                      <AvatarImage src={message.user.avatarUrl} />
-                      <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                  </Avatar>
+                  <Link href={`/profile/${message.user.id}`}>
+                    <Avatar className="h-8 w-8 self-end mb-1">
+                        <AvatarImage src={message.user.avatarUrl} />
+                        <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                    </Avatar>
+                  </Link>
               ) : (
                 !isSender && <div className="w-11" />
               )}
@@ -333,6 +368,29 @@ export function ChatPageClient({
           )
         })}
       </main>
+      <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
+              <AlertDialogDescription>
+                  Set a local nickname for {chatTarget.name}. This will only be visible to you.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="py-4">
+                  <Label htmlFor="nickname-dialog">Nickname</Label>
+                  <Input 
+                      id="nickname-dialog"
+                      value={nicknameInput}
+                      onChange={(e) => setNicknameInput(e.target.value)}
+                      placeholder="Enter nickname"
+                  />
+              </div>
+              <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleNicknameSave}>Save</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
 
       <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <div className="mx-auto max-w-4xl">
