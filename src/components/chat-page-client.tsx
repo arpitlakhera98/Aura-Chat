@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact } from 'lucide-react';
+import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, Search } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
@@ -196,8 +196,8 @@ export function ChatPageClient({
     : null;
 
   return (
-    <div className="flex h-screen flex-col">
-      <header className="flex h-16 items-center gap-4 border-b bg-card px-4">
+    <div className="flex h-screen flex-col bg-[#0b141a]">
+      <header className="flex h-16 items-center justify-between gap-4 border-b border-white/10 bg-card px-4">
         {isChannel ? (
           <div className="flex items-center gap-3 font-semibold">
             <Hash className="h-6 w-6 text-muted-foreground" />
@@ -216,10 +216,14 @@ export function ChatPageClient({
           </Link>
         )}
         <div className="ml-auto flex items-center gap-2">
+           <Button variant="ghost" size="icon">
+              <Search className="h-5 w-5 text-muted-foreground" />
+              <span className="sr-only">Search</span>
+            </Button>
           {isChannel && <SummarizeDialog messages={messages} />}
           {!isChannel && (
             <Button variant="ghost" size="icon" onClick={handleBlockUser}>
-              <ShieldX className="h-4 w-4" />
+              <ShieldX className="h-5 w-5 text-muted-foreground" />
               <span className="sr-only">Block User</span>
             </Button>
           )}
@@ -228,37 +232,27 @@ export function ChatPageClient({
 
       <main
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[url('https://i.imgur.com/hiXwM6p.png')] bg-center bg-opacity-5"
       >
         {messages.map((message) => (
           <div
             key={message.id}
             className={cn(
               'flex items-end gap-2',
-              message.user.id === currentUser.id ? 'justify-end' : ''
+              message.user.id === currentUser.id ? 'justify-end' : 'justify-start'
             )}
           >
-            {message.user.id !== currentUser.id && (
-               <Link href={`/profile/${message.user.id}`}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage asChild src={message.user.avatarUrl}>
-                    <Image src={message.user.avatarUrl} alt={message.user.name} width={32} height={32} />
-                  </AvatarImage>
-                  <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                </Avatar>
-              </Link>
-            )}
             <div
               className={cn(
-                'max-w-xs rounded-lg p-3 text-sm md:max-w-md',
+                'max-w-xs rounded-lg px-3 py-2 text-sm md:max-w-md',
                 message.user.id === currentUser.id
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card',
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary text-white',
                 {'p-1': !!message.imageUrl}
               )}
             >
-              {message.user.id !== currentUser.id && (
-                <p className="text-xs font-semibold pb-1 px-2">{message.user.name}</p>
+              {message.user.id !== currentUser.id && isChannel && (
+                <p className="text-xs font-semibold pb-1 text-accent-foreground/80">{message.user.name}</p>
               )}
               {message.imageUrl ? (
                 <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-md" />
@@ -266,54 +260,107 @@ export function ChatPageClient({
                 <p>{message.content}</p>
               )}
                {message.imageUrl && message.content && (
-                  <p className="pt-2 px-2">{message.content}</p>
+                  <p className="pt-2">{message.content}</p>
               )}
+              <span className="text-xs text-muted-foreground/70 float-right ml-2 mt-1">
+                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
-             {message.user.id === currentUser.id && (
-               <Link href={`/profile/${message.user.id}`}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage asChild src={message.user.avatarUrl}>
-                    <Image src={message.user.avatarUrl} alt={message.user.name} width={32} height={32} />
-                  </AvatarImage>
-                  <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                </Avatar>
-              </Link>
-            )}
           </div>
         ))}
       </main>
 
-      <footer className="border-t p-4 bg-card">
-        <form onSubmit={handleSendMessage}>
-          <Card>
-            {imagePreview && (
-                <div className="p-2 relative">
-                    <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md" />
-                     <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={handleRemoveImage}>
-                        <X className="h-4 w-4" />
+      <footer className="border-t border-white/10 p-4 bg-card">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon">
+                        <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-2">
+                    <p>Emoji picker placeholder</p>
+                </PopoverContent>
+            </Popover>
+           
+             <input
+                type="file"
+                ref={imageInputRef}
+                onChange={handleImageChange}
+                className="hidden"
+                accept="image/*"
+              />
+               <input
+                type="file"
+                ref={documentInputRef}
+                onChange={handleDocumentChange}
+                className="hidden"
+              />
+              <Popover>
+                <PopoverTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon">
+                        <Paperclip className="h-5 w-5 text-muted-foreground" />
+                        <span className="sr-only">Attach file</span>
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-fit p-2 mb-2" side="top" align="start">
+                    <div className="grid grid-cols-3 gap-2">
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
+                            <ImageIcon className="h-6 w-6" />
+                            <span className="text-xs">Image</span>
+                       </Button>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
+                            <Camera className="h-6 w-6" />
+                            <span className="text-xs">Camera</span>
+                       </Button>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
+                            <FileText className="h-6 w-6" />
+                            <span className="text-xs">Document</span>
+                       </Button>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
+                            <MapPin className="h-6 w-6" />
+                            <span className="text-xs">Location</span>
+                       </Button>
+                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
+                            <Contact className="h-6 w-6" />
+                            <span className="text-xs">Contact</span>
+                       </Button>
+                    </div>
+                </PopoverContent>
+              </Popover>
+
+            <div className="flex-1 relative">
+             {imagePreview && (
+                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
+                    <div className="relative w-fit">
+                        <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md" />
+                         <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-muted-foreground" onClick={handleRemoveImage}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             )}
-            {showCamera && (
-                <div className="p-2 relative">
-                    <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted />
-                    {!hasCameraPermission && (
-                         <Alert variant="destructive" className="mt-2">
-                            <AlertTitle>Camera Access Required</AlertTitle>
-                            <AlertDescription>
-                                Please allow camera access in your browser settings to use this feature.
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                     <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => setShowCamera(false)}>
-                        <X className="h-4 w-4" />
-                    </Button>
+             {showCamera && (
+                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
+                    <div className="relative">
+                        <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted />
+                        {!hasCameraPermission && (
+                             <Alert variant="destructive" className="mt-2">
+                                <AlertTitle>Camera Access Required</AlertTitle>
+                                <AlertDescription>
+                                    Please allow camera access in your browser settings to use this feature.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                         <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => setShowCamera(false)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </div>
             )}
-            <div className="relative">
               <Textarea
-                placeholder="Type your message..."
-                className="resize-none pr-20"
+                placeholder="Type a message"
+                className="resize-none pr-12 pl-4 py-2 rounded-full bg-muted"
                 rows={1}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -324,67 +371,19 @@ export function ChatPageClient({
                   }
                 }}
               />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-1">
-                 <input
-                    type="file"
-                    ref={imageInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                   <input
-                    type="file"
-                    ref={documentInputRef}
-                    onChange={handleDocumentChange}
-                    className="hidden"
-                  />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                        <Button type="button" variant="ghost" size="icon">
-                            <Paperclip className="h-4 w-4" />
-                            <span className="sr-only">Attach file</span>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-fit p-2">
-                        <div className="grid grid-cols-3 gap-2">
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
-                                <ImageIcon className="h-6 w-6" />
-                                <span className="text-xs">Image</span>
-                           </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
-                                <Camera className="h-6 w-6" />
-                                <span className="text-xs">Camera</span>
-                           </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
-                                <FileText className="h-6 w-6" />
-                                <span className="text-xs">Document</span>
-                           </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
-                                <MapPin className="h-6 w-6" />
-                                <span className="text-xs">Location</span>
-                           </Button>
-                            <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
-                                <Contact className="h-6 w-6" />
-                                <span className="text-xs">Contact</span>
-                           </Button>
-                        </div>
-                    </PopoverContent>
-                  </Popover>
-
-                <Button
-                  type="submit"
-                  size="icon"
-                >
-                  <SendHorizonal className="h-4 w-4" />
+            </div>
+            {newMessage.trim() || imagePreview ? (
+                 <Button type="submit" size="icon" className="rounded-full">
+                  <SendHorizonal className="h-5 w-5" />
                   <span className="sr-only">Send</span>
                 </Button>
-              </div>
-            </div>
-          </Card>
+            ) : (
+                <Button type="button" size="icon" variant="ghost">
+                    <Mic className="h-5 w-5 text-muted-foreground" />
+                </Button>
+            )}
         </form>
       </footer>
     </div>
   );
 }
-
-    
