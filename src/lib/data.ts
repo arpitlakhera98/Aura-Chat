@@ -137,7 +137,7 @@ export const messages: Message[] = [
     id: 'msg-ch3-2',
     channelId: '3',
     content: 'Oh yeah, the one with the time travel? It was amazing!',
-    timestamp' : '2024-07-29T12:01:00Z',
+    timestamp: '2024-07-29T12:01:00Z',
     user: users[4],
   },
 
