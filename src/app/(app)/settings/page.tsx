@@ -57,13 +57,19 @@ const SettingsListItem = ({
 export default function SettingsPage() {
   const currentUser = useCurrentUser();
   const router = useRouter();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const handleLogout = () => {
     setCurrentUserId('-1'); // Using a non-existent ID to signify logged out
     router.push('/login');
   }
   
-  if (!currentUser) return (
+  if (!isClient || !currentUser) return (
     <div className="flex h-full items-center justify-center">
         <p>Loading settings...</p>
     </div>
