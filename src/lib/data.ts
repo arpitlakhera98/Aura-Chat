@@ -138,7 +138,7 @@ let messages: Message[] = [
     id: 'msg-ch1-2',
     channelId: '1',
     content: 'Glad to be here! How is everyone doing?',
-    timestamp: '2024--07-29T10:01:00Z',
+    timestamp: '2024-07-29T10:01:00Z',
     user: users[2],
   },
   {
@@ -385,7 +385,7 @@ export const getCurrentUserId = (): string | null => {
 export const getCurrentUser = (): User | null => {
   if (typeof window !== 'undefined') {
     const storedId = getCurrentUserId();
-    if (!storedId) return null;
+    if (!storedId || storedId === '-1') return null;
     const user = users.find((u) => u.id === storedId);
     return user || null;
   }
@@ -393,14 +393,15 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const useCurrentUser = (): User | null => {
-    // Initialize state from localStorage to avoid flashes of logged-out content.
-    const [user, setUser] = useState<User | null>(() => getCurrentUser());
+    const [user, setUser] = useState<User | null>(getCurrentUser);
 
     useEffect(() => {
         const handleStorageChange = (event: Event) => {
             // Check if it's our custom event or a cross-tab storage event
             const isCustomEvent = event instanceof CustomEvent;
-            const key = isCustomEvent ? event.detail.key : (event as StorageEvent).key;
+            const detail = isCustomEvent ? (event as CustomEvent).detail : null;
+            const key = detail ? detail.key : (event as StorageEvent).key;
+
 
             if (key === CURRENT_USER_ID_KEY || (event.type === 'storage' && (event as StorageEvent).key === CURRENT_USER_ID_KEY)) {
                 setUser(getCurrentUser());
@@ -412,8 +413,12 @@ export const useCurrentUser = (): User | null => {
 
         const unsubscribeUsers = userEmitter.subscribe((newUsers) => {
             const currentId = getCurrentUserId();
-            const updatedUser = newUsers.find(u => u.id === currentId);
-            setUser(updatedUser || null);
+            if(currentId && currentId !== '-1') {
+                const updatedUser = newUsers.find(u => u.id === currentId);
+                setUser(updatedUser || null);
+            } else {
+                setUser(null);
+            }
         });
 
         // Set initial user state
