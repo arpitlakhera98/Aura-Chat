@@ -105,7 +105,10 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'aurora-glow': 'aurora-glow 4s ease-in-out infinite',
       },
+      clipPath: {
+        'triangle': 'polygon(0 0, 100% 100%, 0 100%)',
+      },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require('tailwindcss-animate'), require('tailwind-clip-path')],
 } satisfies Config;

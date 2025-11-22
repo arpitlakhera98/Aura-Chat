@@ -262,25 +262,25 @@ export function ChatPageClient({
 
       <main
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-6 space-y-4 bg-background/90"
+        className="flex-1 overflow-y-auto p-6 space-y-2 bg-background/90"
       >
         {messages.map((message) => (
           <div
             key={message.id}
             className={cn(
-              'flex items-end gap-3',
+              'flex items-end gap-3 w-full',
               message.user.id === currentUser.id ? 'justify-end' : 'justify-start'
             )}
           >
              {message.user.id !== currentUser.id && (
-                 <Avatar className="h-8 w-8">
+                 <Avatar className="h-8 w-8 self-start">
                     <AvatarImage src={message.user.avatarUrl} />
                     <AvatarFallback>{message.user.name[0]}</AvatarFallback>
                 </Avatar>
             )}
             <div
               className={cn(
-                'max-w-md rounded-2xl px-4 py-3 text-sm md:max-w-lg',
+                'group relative max-w-md rounded-2xl px-4 py-2 text-sm md:max-w-lg',
                 message.user.id === currentUser.id
                   ? 'bg-primary text-primary-foreground rounded-br-none'
                   : 'bg-muted text-foreground rounded-bl-none',
@@ -293,7 +293,7 @@ export function ChatPageClient({
               {message.imageUrl ? (
                 <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
               ) : (
-                <p className="leading-relaxed">{message.content}</p>
+                <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
               )}
                {message.imageUrl && message.content && (
                   <p className="pt-2">{message.content}</p>
@@ -301,7 +301,21 @@ export function ChatPageClient({
               <p className="text-xs text-muted-foreground/70 float-right ml-2 mt-1 clear-both">
                   {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
+               <div className={cn(
+                'absolute bottom-0 w-3 h-3',
+                 message.user.id === currentUser.id ? '-right-1 bg-primary' : '-left-1 bg-muted',
+                 'group-last:w-3',
+                'clip-path-triangle'
+               )}>
+
+               </div>
             </div>
+             {message.user.id === currentUser.id && (
+                 <Avatar className="h-8 w-8 self-start">
+                    <AvatarImage src={message.user.avatarUrl} />
+                    <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                </Avatar>
+            )}
           </div>
         ))}
       </main>

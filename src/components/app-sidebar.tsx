@@ -23,11 +23,13 @@ import {
   MessageSquare,
   Phone,
   User,
+  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { channels, users, useCurrentUser, setCurrentUserId, type User as UserType } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 
 const NavRail = () => {
@@ -84,6 +86,7 @@ const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
     const otherUsers = users.filter((user) => user.id !== currentUser?.id);
+    const [isChannelsOpen, setIsChannelsOpen] = React.useState(true);
 
     const [searchTerm, setSearchTerm] = React.useState('');
 
@@ -111,33 +114,40 @@ const ChatList = () => {
             </SidebarHeader>
             <SidebarContent className="p-2">
                 <SidebarMenu className="gap-1">
+                   <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
+                        <CollapsibleTrigger className="w-full">
+                           <div className="flex items-center justify-between w-full px-3 py-2">
+                                <h2 className="text-sm font-semibold text-primary">CHANNELS</h2>
+                                <ChevronDown className={cn("h-5 w-5 text-primary transition-transform", isChannelsOpen && "rotate-180")} />
+                           </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            {filteredChannels.map((channel) => {
+                                const href = `/channel/${channel.id}`;
+                                const isActive = pathname === href;
+                                return (
+                                    <SidebarMenuItem key={`channel-${channel.id}`}>
+                                        <Link href={href}>
+                                            <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
+                                                <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
+                                                    <AvatarFallback className="bg-transparent text-primary font-bold text-lg">#</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h3 className="font-semibold truncate">{channel.name}</h3>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        Welcome to #{channel.name}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                )
+                            })}
+                        </CollapsibleContent>
+                    </Collapsible>
+                    
                     <SidebarMenuItem>
-                         <h2 className="px-3 text-sm font-semibold text-primary mt-2">Channels</h2>
-                    </SidebarMenuItem>
-                    {filteredChannels.map((channel) => {
-                        const href = `/channel/${channel.id}`;
-                        const isActive = pathname === href;
-                        return (
-                            <SidebarMenuItem key={`channel-${channel.id}`}>
-                                <Link href={href}>
-                                     <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                        <Avatar className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
-                                            <AvatarFallback className="bg-transparent text-primary font-bold text-lg">#</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1 overflow-hidden">
-                                            <h3 className="font-semibold truncate">{channel.name}</h3>
-                                            <p className="text-sm text-muted-foreground truncate">
-                                                Welcome to #{channel.name}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Link>
-                             </SidebarMenuItem>
-                        )
-                    })}
-
-                    <SidebarMenuItem>
-                         <h2 className="px-3 text-sm font-semibold text-primary mt-4">Direct Messages</h2>
+                         <h2 className="px-3 text-sm font-semibold text-primary mt-4">DIRECT MESSAGES</h2>
                     </SidebarMenuItem>
                      {filteredUsers.map((user) => {
                         const href = `/dm/${user.id}`;
@@ -146,7 +156,7 @@ const ChatList = () => {
                              <SidebarMenuItem key={`dm-${user.id}`}>
                                 <Link href={href}>
                                      <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                        <Avatar className="h-12 w-12 border-2 border-transparent relative">
+                                        <Avatar className="h-10 w-10 border-2 border-transparent relative">
                                             <AvatarImage src={user.avatarUrl} />
                                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                              {user.lastSeen === 'online' && (
@@ -155,7 +165,7 @@ const ChatList = () => {
                                         </Avatar>
                                         <div className="flex-1 overflow-hidden">
                                             <h3 className="font-semibold truncate">{user.name}</h3>
-                                            <p className="text-sm text-muted-foreground truncate">
+                                            <p className="text-xs text-muted-foreground truncate">
                                                 Last message snippet...
                                             </p>
                                         </div>
