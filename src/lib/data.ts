@@ -359,7 +359,9 @@ export const setCurrentUserId = (userId: string) => {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(CURRENT_USER_ID_KEY, userId);
     // Emit user change to update components that depend on the full user list
-    window.dispatchEvent(new CustomEvent('local-storage-changed'));
+    window.dispatchEvent(new CustomEvent('local-storage-changed', {
+      detail: { key: CURRENT_USER_ID_KEY, value: userId }
+    }));
   }
 };
 
@@ -381,35 +383,37 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const useCurrentUser = (): User | null => {
-  const [user, setUser] = useState<User | null>(null);
+    // Initialize state from localStorage to avoid flashes of logged-out content.
+    const [user, setUser] = useState<User | null>(() => getCurrentUser());
 
-  useEffect(() => {
-    const handleUserChange = () => {
-        const currentUser = getCurrentUser();
-        setUser(currentUser);
-    };
-    
-    handleUserChange(); // Initial set
-    
-    // This custom event is fired when we call `setCurrentUserId` or `updateUser`.
-    window.addEventListener('local-storage-changed', handleUserChange);
-    // The 'storage' event is for changes in other tabs.
-    window.addEventListener('storage', handleUserChange);
+    useEffect(() => {
+        const handleStorageChange = (event: Event) => {
+            // Check if it's our custom event or a cross-tab storage event
+            const isCustomEvent = event instanceof CustomEvent;
+            const key = isCustomEvent ? event.detail.key : (event as StorageEvent).key;
 
-    const unsubscribeUsers = userEmitter.subscribe((newUsers) => {
-        const currentId = getCurrentUserId();
-        const updatedUser = newUsers.find(u => u.id === currentId);
-        setUser(updatedUser || null);
-    });
+            if (key === CURRENT_USER_ID_KEY) {
+                setUser(getCurrentUser());
+            }
+        };
 
-    return () => {
-        window.removeEventListener('local-storage-changed', handleUserChange);
-        window.removeEventListener('storage', handleUserChange);
-        unsubscribeUsers();
-    };
-  }, []);
+        window.addEventListener('local-storage-changed', handleStorageChange);
+        window.addEventListener('storage', handleStorageChange);
 
-  return user;
+        const unsubscribeUsers = userEmitter.subscribe((newUsers) => {
+            const currentId = getCurrentUserId();
+            const updatedUser = newUsers.find(u => u.id === currentId);
+            setUser(updatedUser || null);
+        });
+
+        return () => {
+            window.removeEventListener('local-storage-changed', handleStorageChange);
+            window.removeEventListener('storage', handleStorageChange);
+            unsubscribeUsers();
+        };
+    }, []);
+
+    return user;
 }
 
 
@@ -542,5 +546,3 @@ export const getUnreadMessageCount = (chatId: string, allMessages: Message[]): n
         new Date(m.timestamp) > new Date(lastReadTimestamp)
     ).length;
 };
-
-    
