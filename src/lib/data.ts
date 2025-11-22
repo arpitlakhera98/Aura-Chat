@@ -242,6 +242,17 @@ export function addMessage(message: Message) {
   messageEmitter.emit(newMessages);
 }
 
+export function clearMessagesForChannel(channelId: string) {
+  const newMessages = messages.filter(m => m.channelId !== channelId);
+  messageEmitter.emit(newMessages);
+}
+
+export function clearMessagesForDM(dmId: string) {
+  const newMessages = messages.filter(m => m.dmId !== dmId);
+  messageEmitter.emit(newMessages);
+}
+
+
 export function useMessages() {
     const [currentMessages, setMessages] = useState(messages);
 

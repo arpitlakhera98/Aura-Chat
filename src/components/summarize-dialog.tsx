@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -52,12 +53,12 @@ export function SummarizeDialog({ messages }: { messages: Message[] }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Sparkles className="mr-2 h-4 w-4" />
-          Summarize
+        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground">
+          <Sparkles className="h-5 w-5" />
+          <span className="sr-only">Summarize</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
         <DialogHeader>
           <DialogTitle>Conversation Summary</DialogTitle>
           <DialogDescription>
@@ -67,9 +68,9 @@ export function SummarizeDialog({ messages }: { messages: Message[] }) {
         <div className="space-y-4 py-4">
           {isLoading && (
             <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full bg-muted/50" />
+              <Skeleton className="h-4 w-full bg-muted/50" />
+              <Skeleton className="h-4 w-3/4 bg-muted/50" />
             </div>
           )}
           {summary && <p className="text-sm text-muted-foreground">{summary}</p>}

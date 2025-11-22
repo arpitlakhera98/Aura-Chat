@@ -6,7 +6,7 @@ import type { Message, User, Channel } from '@/lib/data';
 import { addMessage, getUserNickname, setUserNickname } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2 } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -32,12 +32,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { SummarizeDialog } from './summarize-dialog';
 
 interface ChatPageClientProps {
   currentUser: User;
   messages: Message[];
   chatTarget: User | Channel;
   isChannel: boolean;
+  onClearChat?: () => void;
 }
 
 export function ChatPageClient({
@@ -45,6 +47,7 @@ export function ChatPageClient({
   messages,
   chatTarget,
   isChannel,
+  onClearChat,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
@@ -58,6 +61,8 @@ export function ChatPageClient({
   const [displayName, setDisplayName] = React.useState(chatTarget.name);
   const [nicknameInput, setNicknameInput] = React.useState('');
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = React.useState(false);
+  const [isClearChatDialogOpen, setIsClearChatDialogOpen] = React.useState(false);
+  const [isBlockUserDialogOpen, setIsBlockUserDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -137,12 +142,25 @@ export function ChatPageClient({
     setNewMessage('');
     setImagePreview(null);
   };
-
-  const handleBlockUser = () => {
+  
+  const confirmClearChat = () => {
+    if(onClearChat) {
+        onClearChat();
+    }
     toast({
+        title: "Chat Cleared",
+        description: "All messages in this chat have been deleted."
+    })
+    setIsClearChatDialogOpen(false);
+  }
+
+  const confirmBlockUser = () => {
+    toast({
+      variant: 'destructive',
       title: 'User Blocked (Not Implemented)',
       description: `You have blocked ${(chatTarget as User).name}. This is a placeholder action.`,
     });
+    setIsBlockUserDialogOpen(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,6 +301,7 @@ export function ChatPageClient({
                 </div>
                 )}
                  <div className="ml-auto flex items-center gap-2">
+                    <SummarizeDialog messages={messages} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="rounded-full h-10 w-10">
@@ -296,13 +315,17 @@ export function ChatPageClient({
                             </DropdownMenuItem>
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             <DropdownMenuSeparator className="bg-white/10"/>
-                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
+                            <DropdownMenuItem onClick={() => setIsClearChatDialogOpen(true)} className="flex items-center gap-2">
+                                <Trash2 className="h-4 w-4" />
                                 Clear chat
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-white/10"/>
-                            <DropdownMenuItem onClick={handleBlockUser} className="text-red-400 focus:bg-red-500/20 focus:text-red-300">
-                                Block chat
-                            </DropdownMenuItem>
+                             {!isChannel && (
+                                <DropdownMenuItem onClick={() => setIsBlockUserDialogOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
+                                    <ShieldBan className="h-4 w-4" />
+                                    Block user
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -313,60 +336,72 @@ export function ChatPageClient({
         ref={scrollAreaRef}
         className="flex-1 overflow-y-auto p-6 space-y-2 pt-28 pb-28"
       >
-        {messages.map((message, index) => {
-           const prevMessage = messages[index - 1];
-           const nextMessage = messages[index + 1];
-           const isSender = message.user.id === currentUser.id;
+        {messages.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+            messages.map((message, index) => {
+            const prevMessage = messages[index - 1];
+            const nextMessage = messages[index + 1];
+            const isSender = message.user.id === currentUser.id;
 
-           const showAvatar = !isSender && (!prevMessage || prevMessage.user.id !== message.user.id);
-           const isFirstInGroup = !prevMessage || prevMessage.user.id !== message.user.id;
-           
-          return (
-            <div
-              key={message.id}
-              className={cn(
-                'flex items-end gap-3 w-full',
-                isSender ? 'justify-end' : 'justify-start'
-              )}
-            >
-              {showAvatar ? (
-                  <Link href={`/profile/${message.user.id}`}>
-                    <Avatar className="h-8 w-8 self-end mb-1">
-                        <AvatarImage src={message.user.avatarUrl} />
-                        <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                    </Avatar>
-                  </Link>
-              ) : (
-                !isSender && <div className="w-11" />
-              )}
-              <div
+            const isFirstInGroup = !prevMessage || prevMessage.user.id !== message.user.id || new Date(message.timestamp).getTime() - new Date(prevMessage.timestamp).getTime() > 60000 * 5;
+            const isLastInGroup = !nextMessage || nextMessage.user.id !== message.user.id || new Date(nextMessage.timestamp).getTime() - new Date(message.timestamp).getTime() > 60000 * 5;
+
+            const showAvatar = !isSender && isLastInGroup;
+            
+            return (
+                <div
+                key={message.id}
                 className={cn(
-                  'group relative max-w-md rounded-2xl px-4 py-2.5 text-base md:max-w-lg',
-                  isSender
-                    ? 'bg-primary text-primary-foreground rounded-br-none'
-                    : 'bg-muted text-foreground rounded-bl-none animate-aurora-glow border border-white/10',
-                   {'p-1.5': !!message.imageUrl}
+                    'flex items-end gap-3 w-full',
+                    isSender ? 'justify-end' : 'justify-start'
                 )}
-              >
-                {!isSender && isChannel && isFirstInGroup &&(
-                  <p className="text-xs font-semibold pb-1 text-primary">{message.user.name}</p>
-                )}
-                {message.imageUrl ? (
-                  <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
+                >
+                {showAvatar ? (
+                    <Link href={`/profile/${message.user.id}`}>
+                        <Avatar className="h-8 w-8 self-end mb-1">
+                            <AvatarImage src={message.user.avatarUrl} />
+                            <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                        </Avatar>
+                    </Link>
                 ) : (
-                  <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    !isSender && <div className="w-11" />
                 )}
-                {message.imageUrl && message.content && (
-                    <p className="pt-2">{message.content}</p>
-                )}
-                <p className="text-xs text-muted-foreground/80 float-right ml-4 mt-1 clear-both">
-                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-                
-              </div>
-            </div>
-          )
-        })}
+                <div className="flex flex-col items-start gap-1 w-full max-w-md md:max-w-lg">
+                    {!isSender && isFirstInGroup && (
+                        <p className="text-xs font-semibold text-primary ml-4">{message.user.name}</p>
+                    )}
+                    <div
+                        className={cn(
+                        'group relative rounded-2xl px-4 py-2.5 text-base',
+                        isSender
+                            ? 'bg-primary text-primary-foreground self-end'
+                            : 'bg-muted text-foreground animate-aurora-glow border border-white/10',
+                        isFirstInGroup && (isSender ? 'rounded-tr-none' : 'rounded-tl-none'),
+                        isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
+                        {'p-1.5': !!message.imageUrl}
+                        )}
+                    >
+                        
+                        {message.imageUrl ? (
+                        <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
+                        ) : (
+                        <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        )}
+                        {message.imageUrl && message.content && (
+                            <p className="pt-2">{message.content}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground/80 float-right ml-4 mt-1 clear-both">
+                            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
+                </div>
+                </div>
+            )
+            })
+        )}
       </main>
       <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
           <AlertDialogContent>
@@ -388,6 +423,40 @@ export function ChatPageClient({
               <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleNicknameSave}>Save</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isClearChatDialogOpen} onOpenChange={setIsClearChatDialogOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete all messages in this conversation.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmClearChat} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, clear chat
+              </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
+
+       <AlertDialog open={isBlockUserDialogOpen} onOpenChange={setIsBlockUserDialogOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Block {displayName}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  Blocked contacts will no longer be able to call you or send you messages. This contact will not be notified.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmBlockUser} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Block
+              </AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
@@ -500,7 +569,7 @@ export function ChatPageClient({
                   <span className="sr-only">Send</span>
                 </Button>
             ) : (
-                <Button type="button" size="icon" className="bg-primary rounded-full h-10 w-10 hover:bg-primary/90">
+                <Button type="button" size="icon" className="bg-primary rounded-full h-10 w-10 hover:bg-primary/90" onClick={() => handlePlaceholderAction('Voice message')}>
                     <Mic className="h-5 w-5 text-primary-foreground" />
                 </Button>
             )}
