@@ -62,6 +62,14 @@ export const users: User[] = [
     gender: 'Male',
     email: 'ben@example.com',
   },
+  {
+    id: '6',
+    name: 'Ravi',
+    avatarUrl: 'https://picsum.photos/seed/6/40/40',
+    age: 30,
+    gender: 'Male',
+    email: 'ravi@example.com',
+  },
 ];
 
 export const channels: Channel[] = [
