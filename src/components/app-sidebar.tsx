@@ -27,10 +27,13 @@ import {
   PlusCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { channels, users, useCurrentUser, setCurrentUserId, type User as UserType } from '@/lib/data';
+import { channels, users, useCurrentUser, setCurrentUserId, addUser, type User as UserType } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
+import { Label } from './ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 
 const NavRail = () => {
@@ -82,12 +85,84 @@ const NavRail = () => {
     )
 }
 
+function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+    const { toast } = useToast();
+    const [name, setName] = React.useState('');
+    const [email, setEmail] = React.useState('');
+
+    const handleAddContact = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name || !email) {
+            toast({
+                variant: 'destructive',
+                title: 'Missing Information',
+                description: 'Please fill out all fields.',
+            });
+            return;
+        }
+
+        // Using email as a proxy for mobile number as per user type
+        addUser({
+            name,
+            email,
+            age: 25, // dummy data
+            gender: 'Prefer not to say', // dummy data
+        });
+
+        toast({
+            title: 'Contact Added!',
+            description: `${name} has been added to your contacts.`,
+        });
+        
+        // Reset fields and close dialog
+        setName('');
+        setEmail('');
+        onOpenChange(false);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add New Contact</DialogTitle>
+                    <DialogDescription>
+                        Enter the details of the person you want to add.
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleAddContact}>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                                Name
+                            </Label>
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="Alex" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="email" className="text-right">
+                                Email
+                            </Label>
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" placeholder="alex@example.com" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                             <Button type="button" variant="secondary">Cancel</Button>
+                        </DialogClose>
+                        <Button type="submit">Add Contact</Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 
 const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
     const otherUsers = users.filter((user) => user.id !== currentUser?.id);
     const [isChannelsOpen, setIsChannelsOpen] = React.useState(true);
+    const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
 
     const [searchTerm, setSearchTerm] = React.useState('');
 
@@ -104,7 +179,7 @@ const ChatList = () => {
             <SidebarHeader className="p-4 border-b border-border/50 space-y-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Chats</h1>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => setIsAddContactOpen(true)}>
                         <PlusCircle className="h-6 w-6 text-primary" />
                     </Button>
                 </div>
@@ -184,6 +259,7 @@ const ChatList = () => {
                     </div>
                 </SidebarMenu>
             </SidebarContent>
+            <AddContactDialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen} />
         </div>
     )
 }
