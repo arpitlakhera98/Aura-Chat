@@ -265,6 +265,8 @@ export function getChannels() {
 export function addMessage(message: Message) {
   const newMessages = [...messages, message]
   messageEmitter.emit(newMessages);
+  // Also notify sidebar to re-sort and update unread counts
+  window.dispatchEvent(new CustomEvent('local-storage-changed'));
 }
 
 export function clearMessagesForChannel(channelId: string) {
@@ -283,6 +285,25 @@ export function removeUserFromChannel(channelId: string, userId: string) {
             return {
                 ...c,
                 memberIds: c.memberIds.filter(id => id !== userId),
+            };
+        }
+        return c;
+    });
+    channelEmitter.emit(newChannels);
+}
+
+export function addUsersToChannel(channelId: string, userIds: string[]) {
+    const newChannels = channelsData.map(c => {
+        if (c.id === channelId) {
+            const newMemberIds = [...c.memberIds];
+            userIds.forEach(userId => {
+                if (!newMemberIds.includes(userId)) {
+                    newMemberIds.push(userId);
+                }
+            });
+            return {
+                ...c,
+                memberIds: newMemberIds,
             };
         }
         return c;
@@ -360,7 +381,7 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const useCurrentUser = (): User | null => {
-  const [user, setUser] = useState<User | null>(() => getCurrentUser());
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleUserChange = () => {
@@ -521,3 +542,5 @@ export const getUnreadMessageCount = (chatId: string, allMessages: Message[]): n
         new Date(m.timestamp) > new Date(lastReadTimestamp)
     ).length;
 };
+
+    

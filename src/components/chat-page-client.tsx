@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut } from 'lucide-react';
@@ -30,10 +30,114 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { SummarizeDialog } from './summarize-dialog';
 import { useRouter } from 'next/navigation';
+import { ScrollArea } from './ui/scroll-area';
+import { Checkbox } from './ui/checkbox';
+
+
+function AddMemberDialog({
+  channel,
+  open,
+  onOpenChange,
+}: {
+  channel: Channel;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
+  const [potentialMembers, setPotentialMembers] = React.useState<User[]>([]);
+
+  React.useEffect(() => {
+    if (open) {
+      const nonMembers = users.filter(user => !channel.memberIds.includes(user.id));
+      setPotentialMembers(nonMembers);
+      setSelectedUsers([]);
+    }
+  }, [open, channel.memberIds]);
+  
+  const handleSelectUser = (userId: string) => {
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const handleAddMembers = () => {
+    const totalMembers = channel.memberIds.length + selectedUsers.length;
+    if (totalMembers > 5) {
+      toast({
+        variant: 'destructive',
+        title: 'Group is Full',
+        description: `You can only add ${5 - channel.memberIds.length} more members.`,
+      });
+      return;
+    }
+
+    addUsersToChannel(channel.id, selectedUsers);
+    toast({
+      title: 'Members Added',
+      description: `${selectedUsers.length} user(s) have been added to #${channel.name}.`,
+    });
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle>Add Members to #{channel.name}</DialogTitle>
+          <DialogDescription>
+            Select users to add to this channel. A channel can have a maximum of 5 members.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <ScrollArea className="h-64 mt-4 pr-4">
+          <div className="space-y-4">
+            {potentialMembers.length > 0 ? (
+              potentialMembers.map(user => (
+              <div
+                key={user.id}
+                className="flex items-center gap-4 p-2 rounded-lg hover:bg-white/10 cursor-pointer"
+                onClick={() => handleSelectUser(user.id)}
+              >
+                <Checkbox
+                  checked={selectedUsers.includes(user.id)}
+                  onCheckedChange={() => handleSelectUser(user.id)}
+                  id={`user-${user.id}`}
+                />
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user.avatarUrl} />
+                  <AvatarFallback>{user.name[0]}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold">{user.name}</p>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
+              </div>
+            ))
+            ) : (
+                <p className="text-center text-muted-foreground py-10">No other users to add.</p>
+            )}
+          </div>
+        </ScrollArea>
+        
+        <DialogFooter className="mt-4">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleAddMembers} disabled={selectedUsers.length === 0}>
+            Add ({selectedUsers.length})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -66,6 +170,7 @@ export function ChatPageClient({
   const [isClearChatDialogOpen, setIsClearChatDialogOpen] = React.useState(false);
   const [isBlockUserDialogOpen, setIsBlockUserDialogOpen] = React.useState(false);
   const [isLeaveChannelOpen, setIsLeaveChannelOpen] = React.useState(false);
+  const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -285,16 +390,18 @@ export function ChatPageClient({
 
   const otherUser = isChannel ? null : (chatTarget as User);
   const channel = isChannel ? (chatTarget as Channel) : null;
-  const status = otherUser
-    ? otherUser.lastSeen === 'online'
+  const status = channel
+    ? `${channel.memberIds.length} members`
+    : otherUser?.lastSeen === 'online'
       ? 'Online'
-      : `Last seen ${formatLastSeen(otherUser.lastSeen)}`
-    : `${channel?.memberIds.length} members`;
+      : `Last seen ${formatLastSeen(otherUser!.lastSeen)}`;
+
 
   const isAdmin = isChannel && (chatTarget as Channel).adminId === currentUser.id;
 
   return (
     <div className="flex h-screen flex-col bg-transparent relative">
+        {channel && <AddMemberDialog channel={channel} open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen} />}
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
                 {isChannel && channel ? (
@@ -343,7 +450,7 @@ export function ChatPageClient({
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
                             {isChannel && (
                                 <>
-                                 <DropdownMenuItem onClick={() => handlePlaceholderAction('Add members')} className="flex items-center gap-2">
+                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
                                      <UserPlus className="h-4 w-4" />
                                     Add members
                                 </DropdownMenuItem>
@@ -639,3 +746,5 @@ export function ChatPageClient({
     </div>
   );
 }
+
+    
