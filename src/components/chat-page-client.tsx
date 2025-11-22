@@ -434,11 +434,6 @@ export function ChatPageClient({
                 </div>
                 )}
                  <div className="ml-auto flex items-center gap-2">
-                    {isAdmin && (
-                        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground" onClick={() => handlePlaceholderAction('Manage group')}>
-                            <UserCog className="h-5 w-5" />
-                        </Button>
-                    )}
                     <SummarizeDialog messages={messages} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -448,16 +443,19 @@ export function ChatPageClient({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                            {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             {isChannel && (
-                                <>
-                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
-                                     <UserPlus className="h-4 w-4" />
+                                <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
+                                    <UserPlus className="h-4 w-4" />
                                     Add members
                                 </DropdownMenuItem>
-                                {isAdmin && <DropdownMenuItem onClick={() => handlePlaceholderAction('Edit Channel')}>Edit channel</DropdownMenuItem>}
-                                </>
                             )}
-                            {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
+                            {isAdmin && (
+                                <DropdownMenuItem onClick={() => handlePlaceholderAction('Edit Channel')} className="flex items-center gap-2">
+                                    <UserCog className="h-4 w-4" />
+                                    Edit channel
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator className="bg-white/10"/>
                             <DropdownMenuItem onClick={() => setIsClearChatDialogOpen(true)} className="flex items-center gap-2">
                                 <Trash2 className="h-4 w-4" />
