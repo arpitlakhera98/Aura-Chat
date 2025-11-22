@@ -23,8 +23,8 @@ import {
   PlusCircle,
   ChevronDown,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { channels, users, useCurrentUser, addUser, getUserNickname, type User as UserType } from '@/lib/data';
+import { cn, formatLastSeen } from '@/lib/utils';
+import { channels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message } from '@/lib/data';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
@@ -32,6 +32,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { format, isToday, isYesterday } from 'date-fns';
 
 
 const NavRail = () => {
@@ -180,26 +181,76 @@ const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }
     );
 };
 
+const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    if (isToday(date)) {
+        return format(date, 'p'); // e.g., 4:30 PM
+    }
+    if (isYesterday(date)) {
+        return 'Yesterday';
+    }
+    return format(date, 'M/d/yy'); // e.g., 7/25/24
+};
 
 const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
-    const [otherUsers, setOtherUsers] = React.useState<UserType[]>([]);
+    const allMessages = useMessages();
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
 
-    React.useEffect(() => {
-        const updateUsers = () => {
-            if (currentUser) {
-                const filteredUsers = users.filter(user => user.id !== currentUser.id);
-                setOtherUsers(filteredUsers);
+    const sortedDMs = React.useMemo(() => {
+        if (!currentUser) return [];
+
+        const otherUsers = users.filter(user => user.id !== currentUser.id);
+
+        const lastMessages: Record<string, Message> = {};
+
+        allMessages.forEach(msg => {
+            if (msg.dmId) {
+                const isRelevant = msg.dmId.includes(currentUser.id);
+                if (isRelevant) {
+                    const otherUserId = msg.dmId.replace(currentUser.id, '').replace('-', '');
+                    if (!lastMessages[otherUserId] || new Date(msg.timestamp) > new Date(lastMessages[otherUserId].timestamp)) {
+                        lastMessages[otherUserId] = msg;
+                    }
+                }
             }
-        };
+        });
 
-        updateUsers();
+        return otherUsers
+            .map(user => ({
+                user,
+                lastMessage: lastMessages[user.id] || null
+            }))
+            .sort((a, b) => {
+                if (!a.lastMessage) return 1;
+                if (!b.lastMessage) return -1;
+                return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
+            });
 
-        window.addEventListener('local-storage-changed', updateUsers);
-        return () => window.removeEventListener('local-storage-changed', updateUsers);
-    }, [currentUser]);
+    }, [currentUser, allMessages]);
+
+    const sortedChannels = React.useMemo(() => {
+        const lastMessages: Record<string, Message> = {};
+        allMessages.forEach(msg => {
+            if (msg.channelId) {
+                if (!lastMessages[msg.channelId] || new Date(msg.timestamp) > new Date(lastMessages[msg.channelId].timestamp)) {
+                    lastMessages[msg.channelId] = msg;
+                }
+            }
+        });
+
+        return channels
+            .map(channel => ({
+                channel,
+                lastMessage: lastMessages[channel.id] || null
+            }))
+            .sort((a, b) => {
+                if (!a.lastMessage) return 1;
+                if (!b.lastMessage) return -1;
+                return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
+            });
+    }, [allMessages]);
     
     return (
         <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20">
@@ -212,7 +263,7 @@ const ChatList = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <SidebarMenu className="pt-2">
-                            {otherUsers.map((user) => {
+                            {sortedDMs.map(({ user, lastMessage }) => {
                                 const href = `/dm/${user.id}`;
                                 const isActive = pathname === href;
                                 const displayName = getUserNickname(user.id) || user.name;
@@ -233,12 +284,12 @@ const ChatList = () => {
                                                 <div className="flex-1 overflow-hidden">
                                                     <h3 className="font-semibold truncate text-base text-white">{displayName}</h3>
                                                     <p className="text-sm text-muted-foreground truncate">
-                                                        Last message snippet...
+                                                         {lastMessage ? lastMessage.content : 'No messages yet'}
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1 text-xs">
                                                      <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">3</Badge>
-                                                     <p className="text-muted-foreground">10:30 AM</p>
+                                                     <p className="text-muted-foreground">{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
                                                 </div>
                                             </div>
                                         </Link>
@@ -256,7 +307,7 @@ const ChatList = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                         <SidebarMenu className="pt-2">
-                            {channels.map((channel) => {
+                             {sortedChannels.map(({ channel, lastMessage }) => {
                                 const href = `/channel/${channel.id}`;
                                 const isActive = pathname === href;
                                 return (
@@ -274,12 +325,12 @@ const ChatList = () => {
                                                 <div className="flex-1 overflow-hidden">
                                                     <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
                                                     <p className="text-sm text-muted-foreground truncate">
-                                                        Welcome to #{channel.name}
+                                                        {lastMessage ? lastMessage.content : `Welcome to #${channel.name}`}
                                                     </p>
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1 text-xs">
                                                     <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
-                                                    <p className="text-muted-foreground">Yesterday</p>
+                                                    <p className="text-muted-foreground">{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
                                                 </div>
                                             </div>
                                         </Link>
