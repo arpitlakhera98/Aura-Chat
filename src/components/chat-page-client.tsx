@@ -196,11 +196,13 @@ export function ChatPageClient({
     : null;
 
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-card">
       <header className="flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-card px-6">
         {isChannel ? (
           <div className="flex items-center gap-3 font-semibold">
-            <Hash className="h-6 w-6 text-muted-foreground" />
+            <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
+                <AvatarFallback className="bg-transparent text-primary font-bold text-xl">#</AvatarFallback>
+            </Avatar>
             <span className="text-lg">{chatTarget.name}</span>
           </div>
         ) : (
@@ -252,7 +254,7 @@ export function ChatPageClient({
               className={cn(
                 'max-w-md rounded-2xl px-4 py-3 text-sm md:max-w-lg',
                 message.user.id === currentUser.id
-                  ? 'bg-primary text-white rounded-br-none'
+                  ? 'bg-primary text-primary-foreground rounded-br-none'
                   : 'bg-muted text-foreground rounded-bl-none',
                 {'p-1': !!message.imageUrl}
               )}
@@ -366,7 +368,7 @@ export function ChatPageClient({
             )}
               <Textarea
                 placeholder="Type a message"
-                className="resize-none pr-12 pl-4 py-2 rounded-full bg-muted border-none"
+                className="resize-none pr-12 pl-4 py-2 rounded-full bg-input border-none"
                 rows={1}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -379,7 +381,7 @@ export function ChatPageClient({
               />
             </div>
             {newMessage.trim() || imagePreview ? (
-                 <Button type="submit" size="icon" className="rounded-full bg-primary h-10 w-10">
+                 <Button type="submit" size="icon" className="rounded-full bg-primary h-10 w-10 transition-transform hover:scale-110">
                   <SendHorizonal className="h-5 w-5" />
                   <span className="sr-only">Send</span>
                 </Button>

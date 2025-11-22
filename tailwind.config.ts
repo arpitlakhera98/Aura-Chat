@@ -95,10 +95,15 @@ export default {
             height: '0',
           },
         },
+        'aurora-glow': {
+          '0%, 100%': { 'box-shadow': '0 0 10px -5px hsl(var(--primary)), 0 0 20px -10px hsl(var(--primary))' },
+          '50%': { 'box-shadow': '0 0 20px -5px hsl(var(--primary)), 0 0 40px -10px hsl(var(--primary))' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'aurora-glow': 'aurora-glow 4s ease-in-out infinite',
       },
     },
   },

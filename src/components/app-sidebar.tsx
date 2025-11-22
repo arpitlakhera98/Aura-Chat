@@ -37,6 +37,7 @@ const NavRail = () => {
 
     const handleLogout = () => {
         setCurrentUserId('-1'); 
+        window.dispatchEvent(new CustomEvent('local-storage-changed'));
         router.push('/login');
     }
 
@@ -50,10 +51,12 @@ const NavRail = () => {
     return (
         <div className="flex flex-col items-center justify-between h-full w-20 bg-card py-6">
             <div className="flex flex-col items-center gap-2">
-                <Avatar className="h-12 w-12 border-2 border-primary mb-4">
-                  <AvatarImage src={currentUser.avatarUrl} />
-                  <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
-                </Avatar>
+                <Link href={`/profile/${currentUser.id}`}>
+                    <Avatar className="h-12 w-12 border-2 border-primary mb-4 transition-all hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary))]">
+                    <AvatarImage src={currentUser.avatarUrl} />
+                    <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
+                    </Avatar>
+                </Link>
                  {navItems.map((item) => (
                     <Link key={item.label} href={item.href} title={item.label}>
                         <Button variant="ghost" size="icon" className={cn("rounded-lg h-12 w-12", item.active && "bg-accent text-primary")}>
@@ -99,8 +102,8 @@ const ChatList = () => {
                  <div className="relative mt-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                        placeholder="Search chats"
-                        className="pl-10 bg-muted border-none rounded-full"
+                        placeholder="Search chats or start a new one"
+                        className="pl-10 bg-input border-none rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
