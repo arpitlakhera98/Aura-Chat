@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel, updateChannel } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut } from 'lucide-react';
@@ -138,6 +138,110 @@ function AddMemberDialog({
   );
 }
 
+const DUMMY_AVATAR_URL = 'https://picsum.photos/seed/placeholder/96/96';
+
+function EditChannelDialog({
+  channel,
+  open,
+  onOpenChange,
+}: {
+  channel: Channel;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  const [name, setName] = React.useState('');
+  const [avatarUrl, setAvatarUrl] = React.useState('');
+  const [avatarPreview, setAvatarPreview] = React.useState('');
+
+  React.useEffect(() => {
+    if (channel) {
+      setName(channel.name);
+      const url = channel.avatarUrl || DUMMY_AVATAR_URL;
+      setAvatarUrl(url);
+      setAvatarPreview(url);
+    }
+  }, [channel]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setAvatarPreview(result);
+        setAvatarUrl(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveChanges = () => {
+    if (!channel) return;
+
+    updateChannel(channel.id, {
+      name,
+      avatarUrl,
+    });
+
+    toast({
+      title: 'Channel Updated',
+      description: 'The channel details have been saved.',
+    });
+    onOpenChange(false);
+  };
+  
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+        <DialogHeader>
+          <DialogTitle>Edit Channel</DialogTitle>
+          <DialogDescription>
+            Change the name and avatar for #{channel.name}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+            <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                    <AvatarImage src={avatarPreview} />
+                    <AvatarFallback>#</AvatarFallback>
+                </Avatar>
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleImageChange}
+                    accept="image/*"
+                    className="hidden"
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    Change Icon
+                </Button>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="channel-name">Channel Name</Label>
+                <Input
+                    id="channel-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-black/20 border-white/10"
+                />
+            </div>
+        </div>
+
+        <DialogFooter className="mt-4">
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button onClick={handleSaveChanges}>Save Changes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -171,6 +275,7 @@ export function ChatPageClient({
   const [isBlockUserDialogOpen, setIsBlockUserDialogOpen] = React.useState(false);
   const [isLeaveChannelOpen, setIsLeaveChannelOpen] = React.useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
+  const [isEditChannelOpen, setIsEditChannelOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -194,7 +299,7 @@ export function ChatPageClient({
     return () => {
       window.removeEventListener('local-storage-changed', updateDisplayName);
     };
-  }, [updateDisplayName]);
+  }, [updateDisplayName, chatTarget]);
 
   React.useEffect(() => {
     if (showCamera) {
@@ -379,7 +484,7 @@ export function ChatPageClient({
       setIsLeaveChannelOpen(false);
       toast({
           title: "You have left the channel",
-          description: `You are no longer a member of #${chatTarget.name}.`,
+          description: `You are no longer a member of #${(chatTarget as Channel).name}.`,
       });
       router.push('/channel/1'); // Redirect to a default channel
   }
@@ -397,20 +502,22 @@ export function ChatPageClient({
       : `Last seen ${formatLastSeen(otherUser!.lastSeen)}`;
 
 
-  const isAdmin = isChannel && (chatTarget as Channel).adminId === currentUser.id;
+  const isAdmin = channel && channel.adminId === currentUser.id;
 
   return (
     <div className="flex h-screen flex-col bg-transparent relative">
         {channel && <AddMemberDialog channel={channel} open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen} />}
+        {channel && isAdmin && <EditChannelDialog channel={channel} open={isEditChannelOpen} onOpenChange={setIsEditChannelOpen} />}
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
-                {isChannel && channel ? (
+                {channel ? (
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
-                        <span className="text-primary font-bold text-xl">#</span>
+                        <AvatarImage src={channel.avatarUrl} />
+                        <AvatarFallback>#</AvatarFallback>
                     </Avatar>
                     <div>
-                        <span className="text-lg font-semibold">{displayName}</span>
+                        <span className="text-lg font-semibold">{channel.name}</span>
                         <p className="text-xs text-muted-foreground">{status}</p>
                     </div>
                 </div>
@@ -444,14 +551,14 @@ export function ChatPageClient({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
-                            {isChannel && (
+                            {channel && (
                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
                                     <UserPlus className="h-4 w-4" />
                                     Add members
                                 </DropdownMenuItem>
                             )}
                             {isAdmin && (
-                                <DropdownMenuItem onClick={() => handlePlaceholderAction('Edit Channel')} className="flex items-center gap-2">
+                                <DropdownMenuItem onClick={() => setIsEditChannelOpen(true)} className="flex items-center gap-2">
                                     <UserCog className="h-4 w-4" />
                                     Edit channel
                                 </DropdownMenuItem>
@@ -468,7 +575,7 @@ export function ChatPageClient({
                                     Block user
                                 </DropdownMenuItem>
                             )}
-                            {isChannel && (
+                            {channel && (
                                 <DropdownMenuItem onClick={() => setIsLeaveChannelOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
                                     <LogOut className="h-4 w-4" />
                                     Leave channel
@@ -612,7 +719,7 @@ export function ChatPageClient({
       <AlertDialog open={isLeaveChannelOpen} onOpenChange={setIsLeaveChannelOpen}>
           <AlertDialogContent>
               <AlertDialogHeader>
-              <AlertDialogTitle>Leave #{displayName}?</AlertDialogTitle>
+              <AlertDialogTitle>Leave #{channel?.name}?</AlertDialogTitle>
               <AlertDialogDescription>
                   You will no longer receive notifications from this channel and it will be removed from your channel list.
               </AlertDialogDescription>

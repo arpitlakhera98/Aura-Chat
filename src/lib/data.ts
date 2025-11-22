@@ -37,6 +37,7 @@ export type Channel = {
   name: string;
   adminId: string;
   memberIds: string[];
+  avatarUrl?: string;
 };
 
 export type Message = {
@@ -119,9 +120,9 @@ export let users: User[] = [
 ];
 
 let channelsData: Channel[] = [
-  { id: '1', name: 'general', adminId: '1', memberIds: ['1', '2', '3', '4', '6'] },
-  { id: '2', name: 'design-team', adminId: '2', memberIds: ['2', '5'] },
-  { id: '3', name: 'random', adminId: '1', memberIds: ['1', '3', '4'] },
+  { id: '1', name: 'general', adminId: '1', memberIds: ['1', '2', '3', '4', '6'], avatarUrl: 'https://picsum.photos/seed/ch1/96/96' },
+  { id: '2', name: 'design-team', adminId: '2', memberIds: ['2', '5'], avatarUrl: 'https://picsum.photos/seed/ch2/96/96' },
+  { id: '3', name: 'random', adminId: '1', memberIds: ['1', '3', '4'], avatarUrl: 'https://picsum.photos/seed/ch3/96/96' },
 ];
 
 let messages: Message[] = [
@@ -262,6 +263,15 @@ export function getChannels() {
     return channelsData;
 }
 
+export function updateChannel(channelId: string, updatedData: Partial<Channel>) {
+    channelsData = channelsData.map(channel =>
+        channel.id === channelId ? { ...channel, ...updatedData } : channel
+    );
+    channelEmitter.emit([...channelsData]);
+    window.dispatchEvent(new CustomEvent('local-storage-changed'));
+}
+
+
 export function addMessage(message: Message) {
   const newMessages = [...messages, message]
   messageEmitter.emit(newMessages);
@@ -392,7 +402,7 @@ export const useCurrentUser = (): User | null => {
             const isCustomEvent = event instanceof CustomEvent;
             const key = isCustomEvent ? event.detail.key : (event as StorageEvent).key;
 
-            if (key === CURRENT_USER_ID_KEY) {
+            if (key === CURRENT_USER_ID_KEY || (event.type === 'storage' && (event as StorageEvent).key === CURRENT_USER_ID_KEY)) {
                 setUser(getCurrentUser());
             }
         };
@@ -405,6 +415,9 @@ export const useCurrentUser = (): User | null => {
             const updatedUser = newUsers.find(u => u.id === currentId);
             setUser(updatedUser || null);
         });
+
+        // Set initial user state
+        setUser(getCurrentUser());
 
         return () => {
             window.removeEventListener('local-storage-changed', handleStorageChange);

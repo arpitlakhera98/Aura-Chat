@@ -369,9 +369,10 @@ const ChatList = () => {
                                                     "shadow-lg",
                                                     isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
                                                 )}>
-                                                    <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
-                                                        <p className="text-primary font-bold text-2xl">#</p>
-                                                    </div>
+                                                    <Avatar className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
+                                                        <AvatarImage src={channel.avatarUrl} />
+                                                        <AvatarFallback className="text-primary font-bold text-2xl">#</AvatarFallback>
+                                                    </Avatar>
                                                     <div className="flex-1 overflow-hidden">
                                                         <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
                                                         <p className="text-sm text-muted-foreground truncate">
