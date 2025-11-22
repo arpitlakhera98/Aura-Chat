@@ -242,14 +242,14 @@ function BlockedUsersTabContent() {
                 <CardDescription>
                     Manage users you have blocked. (This feature is not yet implemented).
                 </CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
                 <div className="text-center py-8 text-muted-foreground">
                     <p>You haven&apos;t blocked any users yet.</p>
                 </div>
             </CardContent>
         </Card>
-    )
+    );
 }
 
 export default function SettingsPage() {
