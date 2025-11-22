@@ -5,21 +5,10 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useCurrentUser, type User } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import {
   ChevronRight,
   User as UserIcon,
-  Lock,
-  MessageSquare,
-  Bell,
-  Star,
-  Link2,
-  List,
-  Megaphone,
-  QrCode,
-  Palette,
-  Slash,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -31,15 +20,13 @@ const SettingsListItem = ({
   title,
   subtitle,
   href = '#',
-  isPlaceholder,
 }: {
   icon: React.ElementType;
   title: string;
   subtitle?: string;
   href?: string;
-  isPlaceholder?: boolean;
 }) => (
-  <Link href={isPlaceholder ? '#' : href}>
+  <Link href={href}>
     <div className="flex items-center gap-4 px-4 py-3 bg-white/5 border-t border-white/10 hover:bg-white/10 transition-colors cursor-pointer rounded-lg shadow-lg">
       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
         <Icon className="h-5 w-5 text-primary" />
@@ -91,26 +78,14 @@ export default function SettingsPage() {
                 <p className="text-xl font-semibold">{currentUser.name}</p>
                 <Badge variant="outline" className="mt-1 border-primary/50 text-primary">chase your dreams</Badge>
               </div>
-              <QrCode className="h-7 w-7 text-muted-foreground" />
             </Link>
           </div>
           
-          <div className="space-y-3 px-4">
-            <SettingsListItem icon={Star} title="Starred Messages" isPlaceholder />
-            <SettingsListItem icon={Link2} title="Linked Devices" isPlaceholder />
-            <SettingsListItem icon={Megaphone} title="Broadcast Lists" isPlaceholder />
-          </div>
-
           <Separator className="bg-white/10" />
 
           <div className="space-y-3 px-4">
-            <SettingsListItem icon={UserIcon} title="Account" subtitle="Security notifications, change number" href="/settings/profile" />
-            <SettingsListItem icon={Lock} title="Privacy" subtitle="Block contacts, disappearing messages" href="/settings/privacy" />
-            <SettingsListItem icon={Palette} title="Appearance" subtitle="Theme, wallpapers, chat history" href="/settings/appearance" />
-            <SettingsListItem icon={Bell} title="Notifications" subtitle="Message, group & call tones" isPlaceholder />
-            <SettingsListItem icon={Slash} title="Blocked Users" subtitle="Manage blocked users" href="/settings/blocked" />
+            <SettingsListItem icon={UserIcon} title="Edit Profile" subtitle="Change your name, age, and bio" href="/settings/profile" />
           </div>
-
         </main>
     </div>
   );
