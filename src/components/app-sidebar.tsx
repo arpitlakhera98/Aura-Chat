@@ -24,6 +24,7 @@ import {
   Phone,
   User,
   ChevronDown,
+  PlusCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { channels, users, useCurrentUser, setCurrentUserId, type User as UserType } from '@/lib/data';
@@ -100,38 +101,43 @@ const ChatList = () => {
     
     return (
         <div className="w-96 flex flex-col border-r border-border/50 h-full bg-background">
-            <SidebarHeader className="p-4 border-b border-border/50">
-                 <h1 className="text-2xl font-bold">Chats</h1>
-                 <div className="relative mt-4">
+            <SidebarHeader className="p-4 border-b border-border/50 space-y-4">
+                <div className="flex items-center justify-between">
+                    <h1 className="text-2xl font-bold">Chats</h1>
+                    <Button variant="ghost" size="icon">
+                        <PlusCircle className="h-6 w-6 text-primary" />
+                    </Button>
+                </div>
+                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                        placeholder="Search chats or start a new one"
+                        placeholder="Search chats..."
                         className="pl-10 bg-input border-none rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </SidebarHeader>
-            <SidebarContent className="p-2">
-                <SidebarMenu className="gap-1">
-                   <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen}>
+            <SidebarContent className="p-0">
+                <SidebarMenu className="gap-0">
+                   <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen} className="p-2">
                         <CollapsibleTrigger className="w-full">
-                           <div className="flex items-center justify-between w-full px-3 py-2">
-                                <h2 className="text-sm font-semibold text-primary">CHANNELS</h2>
-                                <ChevronDown className={cn("h-5 w-5 text-primary transition-transform", isChannelsOpen && "rotate-180")} />
+                           <div className="flex items-center justify-between w-full px-2 py-2">
+                                <h2 className="text-sm font-semibold tracking-wider text-muted-foreground">CHANNELS</h2>
+                                <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", isChannelsOpen && "rotate-180")} />
                            </div>
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
+                        <CollapsibleContent className="space-y-1">
                             {filteredChannels.map((channel) => {
                                 const href = `/channel/${channel.id}`;
                                 const isActive = pathname === href;
                                 return (
                                     <SidebarMenuItem key={`channel-${channel.id}`}>
                                         <Link href={href}>
-                                            <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                                <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
-                                                    <AvatarFallback className="bg-transparent text-primary font-bold text-lg">#</AvatarFallback>
-                                                </Avatar>
+                                            <div className={cn("flex items-center gap-3 p-2 rounded-lg transition-colors", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
+                                                <div className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
+                                                    <p className="text-primary font-bold text-lg">#</p>
+                                                </div>
                                                 <div className="flex-1 overflow-hidden">
                                                     <h3 className="font-semibold truncate">{channel.name}</h3>
                                                     <p className="text-xs text-muted-foreground truncate">
@@ -146,34 +152,36 @@ const ChatList = () => {
                         </CollapsibleContent>
                     </Collapsible>
                     
-                    <SidebarMenuItem>
-                         <h2 className="px-3 text-sm font-semibold text-primary mt-4">DIRECT MESSAGES</h2>
-                    </SidebarMenuItem>
-                     {filteredUsers.map((user) => {
-                        const href = `/dm/${user.id}`;
-                        const isActive = pathname === href;
-                        return (
-                             <SidebarMenuItem key={`dm-${user.id}`}>
-                                <Link href={href}>
-                                     <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                        <Avatar className="h-10 w-10 border-2 border-transparent relative">
-                                            <AvatarImage src={user.avatarUrl} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                             {user.lastSeen === 'online' && (
-                                                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-primary border-2 border-background" />
-                                            )}
-                                        </Avatar>
-                                        <div className="flex-1 overflow-hidden">
-                                            <h3 className="font-semibold truncate">{user.name}</h3>
-                                            <p className="text-xs text-muted-foreground truncate">
-                                                Last message snippet...
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Link>
-                             </SidebarMenuItem>
-                        )
-                    })}
+                    <div className="p-2">
+                        <h2 className="px-2 py-2 text-sm font-semibold tracking-wider text-muted-foreground">DIRECT MESSAGES</h2>
+                         <div className="space-y-1">
+                            {filteredUsers.map((user) => {
+                                const href = `/dm/${user.id}`;
+                                const isActive = pathname === href;
+                                return (
+                                    <SidebarMenuItem key={`dm-${user.id}`}>
+                                        <Link href={href}>
+                                            <div className={cn("flex items-center gap-3 p-2 rounded-lg transition-colors", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
+                                                <Avatar className="h-10 w-10 border-2 border-transparent relative">
+                                                    <AvatarImage src={user.avatarUrl} />
+                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                                    {user.lastSeen === 'online' && (
+                                                        <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                                                    )}
+                                                </Avatar>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h3 className="font-semibold truncate">{user.name}</h3>
+                                                    <p className="text-xs text-muted-foreground truncate">
+                                                        Last message snippet...
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                )
+                            })}
+                        </div>
+                    </div>
                 </SidebarMenu>
             </SidebarContent>
         </div>
