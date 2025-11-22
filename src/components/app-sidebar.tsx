@@ -22,9 +22,11 @@ import {
   Phone,
   PlusCircle,
   ChevronDown,
+  UserPlus,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useChannels, getChannels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message, getUnreadMessageCount } from '@/lib/data';
+import { useChannels, getChannels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message, getUnreadMessageCount, createChannel } from '@/lib/data';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
@@ -33,6 +35,9 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { format, isToday, isYesterday } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { ScrollArea } from './ui/scroll-area';
+import { Checkbox } from './ui/checkbox';
 
 
 const NavRail = () => {
@@ -143,18 +148,126 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
     );
 }
 
+function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) {
+    const { toast } = useToast();
+    const currentUser = useCurrentUser();
+    const [groupName, setGroupName] = React.useState('');
+    const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
+
+    const potentialMembers = React.useMemo(() => {
+        if (!currentUser) return [];
+        return users.filter(user => user.id !== currentUser.id);
+    }, [currentUser]);
+
+    const handleSelectUser = (userId: string) => {
+        setSelectedUsers(prev =>
+          prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+        );
+    };
+
+    const handleCreateGroup = () => {
+        if (!groupName.trim()) {
+            toast({ variant: 'destructive', title: 'Group name is required.' });
+            return;
+        }
+        if (currentUser && (selectedUsers.length + 1) > 5) {
+             toast({ variant: 'destructive', title: 'Maximum 5 members allowed.' });
+            return;
+        }
+
+        createChannel(groupName, selectedUsers);
+
+        toast({ title: 'Group Created!', description: `The group "${groupName}" has been created.` });
+        setGroupName('');
+        setSelectedUsers([]);
+        onOpenChange(false);
+    };
+    
+    return (
+         <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+                <DialogHeader>
+                    <DialogTitle>Create New Group</DialogTitle>
+                    <DialogDescription>
+                        Give your group a name and add some members to start chatting.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="group-name">Group Name</Label>
+                        <Input 
+                            id="group-name" 
+                            value={groupName} 
+                            onChange={(e) => setGroupName(e.target.value)} 
+                            placeholder="e.g., Project Team"
+                            className="bg-black/20 border-white/10"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                         <Label>Select Members</Label>
+                         <ScrollArea className="h-48 pr-4 border border-white/10 rounded-md">
+                            <div className="p-2 space-y-2">
+                                {potentialMembers.map(user => (
+                                    <div
+                                        key={user.id}
+                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 cursor-pointer"
+                                        onClick={() => handleSelectUser(user.id)}
+                                    >
+                                        <Checkbox
+                                            checked={selectedUsers.includes(user.id)}
+                                            onCheckedChange={() => handleSelectUser(user.id)}
+                                            id={`create-group-user-${user.id}`}
+                                        />
+                                        <Avatar className="h-9 w-9">
+                                            <AvatarImage src={user.avatarUrl} />
+                                            <AvatarFallback>{user.name[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <span>{user.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                         </ScrollArea>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancel</Button>
+                    </DialogClose>
+                    <Button onClick={handleCreateGroup}>Create Group</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 type ChatFilter = 'All' | 'Unread' | 'Direct' | 'Groups';
 
-const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick }: { activeFilter: ChatFilter, onFilterChange: (filter: ChatFilter) => void, onAddContactClick: () => void }) => {
+const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNewGroupClick }: { activeFilter: ChatFilter, onFilterChange: (filter: ChatFilter) => void, onAddContactClick: () => void, onNewGroupClick: () => void }) => {
     const filters: ChatFilter[] = ['All', 'Unread', 'Direct', 'Groups'];
 
     return (
         <SidebarHeader className="p-4 border-b border-border/20 space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold tracking-tight text-primary">CHATS</h1>
-                <Button variant="ghost" size="icon" className="bg-primary/20 text-primary rounded-full h-10 w-10 hover:bg-primary/30" onClick={onAddContactClick}>
-                    <PlusCircle className="h-6 w-6" />
-                </Button>
+                 <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="bg-primary/20 text-primary rounded-full h-10 w-10 hover:bg-primary/30">
+                            <PlusCircle className="h-6 w-6" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                        <DropdownMenuItem onClick={onNewGroupClick} className="gap-2">
+                            <Users className="h-4 w-4" />
+                            New Group
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onClick={onAddContactClick} className="gap-2">
+                            <UserPlus className="h-4 w-4" />
+                            New Contact
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -199,6 +312,7 @@ const ChatList = () => {
     const allMessages = useMessages();
     const channels = useChannels();
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
+    const [isCreateGroupOpen, setIsCreateGroupOpen] = React.useState(false);
     const [activeFilter, setActiveFilter] = React.useState<ChatFilter>('All');
     
     // This state will trigger re-renders when local storage changes for unread counts
@@ -292,7 +406,8 @@ const ChatList = () => {
             <ChatListHeader 
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
-                onAddContactClick={() => setIsAddContactOpen(true)} 
+                onAddContactClick={() => setIsAddContactOpen(true)}
+                onNewGroupClick={() => setIsCreateGroupOpen(true)} 
             />
             <SidebarContent className="p-2 space-y-4">
                 {activeFilter !== 'Groups' && (
@@ -398,6 +513,7 @@ const ChatList = () => {
                  )}
             </SidebarContent>
             <AddContactDialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen} />
+            <CreateGroupDialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen} />
         </div>
     )
 }

@@ -263,6 +263,25 @@ export function getChannels() {
     return channelsData;
 }
 
+export function createChannel(name: string, memberIds: string[]) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    const allMemberIds = [...new Set([currentUser.id, ...memberIds])];
+
+    const newChannel: Channel = {
+        id: String(channelsData.length + 1 + Date.now()),
+        name,
+        adminId: currentUser.id,
+        memberIds: allMemberIds,
+        avatarUrl: `https://picsum.photos/seed/ch${Date.now()}/96/96`,
+    };
+    channelsData.push(newChannel);
+    channelEmitter.emit([...channelsData]);
+    window.dispatchEvent(new CustomEvent('local-storage-changed'));
+    return newChannel;
+}
+
 export function updateChannel(channelId: string, updatedData: Partial<Channel>) {
     channelsData = channelsData.map(channel =>
         channel.id === channelId ? { ...channel, ...updatedData } : channel
@@ -393,21 +412,20 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const useCurrentUser = (): User | null => {
-    const [user, setUser] = useState<User | null>(getCurrentUser);
+    const [user, setUser] = useState<User | null>(() => getCurrentUser());
 
     useEffect(() => {
         const handleStorageChange = (event: Event) => {
-            // Check if it's our custom event or a cross-tab storage event
-            const isCustomEvent = event instanceof CustomEvent;
-            const detail = isCustomEvent ? (event as CustomEvent).detail : null;
-            const key = detail ? detail.key : (event as StorageEvent).key;
+            const isOurEvent = event instanceof CustomEvent && event.detail;
+            const isStorageEvent = event.type === 'storage';
 
-
-            if (key === CURRENT_USER_ID_KEY || (event.type === 'storage' && (event as StorageEvent).key === CURRENT_USER_ID_KEY)) {
+            if (isOurEvent && event.detail.key === CURRENT_USER_ID_KEY) {
+                setUser(getCurrentUser());
+            } else if (isStorageEvent && (event as StorageEvent).key === CURRENT_USER_ID_KEY) {
                 setUser(getCurrentUser());
             }
         };
-
+        
         window.addEventListener('local-storage-changed', handleStorageChange);
         window.addEventListener('storage', handleStorageChange);
 
