@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel, updateChannel } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel, users, addUsersToChannel, updateChannel, getUserById } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut } from 'lucide-react';
@@ -251,6 +251,60 @@ interface ChatPageClientProps {
   onClearChat?: () => void;
 }
 
+const ChannelMembersPopover = ({ channel }: { channel: Channel }) => {
+    const [members, setMembers] = React.useState<User[]>([]);
+
+    React.useEffect(() => {
+        const memberDetails = channel.memberIds
+            .map(id => getUserById(id))
+            .filter((user): user is User => !!user);
+        setMembers(memberDetails);
+    }, [channel.memberIds]);
+
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <div className="flex items-center gap-3 cursor-pointer">
+                    <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
+                        <AvatarImage src={channel.avatarUrl} />
+                        <AvatarFallback>#</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <span className="text-lg font-semibold">{channel.name}</span>
+                        <p className="text-xs text-muted-foreground">{channel.memberIds.length} members</p>
+                    </div>
+                </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 bg-black/80 border-white/10 text-white">
+                <div className="grid gap-4">
+                    <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Members</h4>
+                        <p className="text-sm text-muted-foreground">
+                            Users in this channel.
+                        </p>
+                    </div>
+                    <ScrollArea className="h-48">
+                        <div className="space-y-3 pr-4">
+                            {members.map(member => (
+                                <div key={member.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-white/10">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarImage src={member.avatarUrl} />
+                                        <AvatarFallback>{member.name[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <Link href={`/profile/${member.id}`} className="font-medium hover:underline">
+                                        {member.name}
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+
 export function ChatPageClient({
   currentUser,
   messages,
@@ -496,7 +550,7 @@ export function ChatPageClient({
   const otherUser = isChannel ? null : (chatTarget as User);
   const channel = isChannel ? (chatTarget as Channel) : null;
   const status = channel
-    ? `${channel.memberIds.length} members`
+    ? null // Status is now handled by the Popover trigger
     : otherUser?.lastSeen === 'online'
       ? 'Online'
       : `Last seen ${formatLastSeen(otherUser!.lastSeen)}`;
@@ -511,16 +565,7 @@ export function ChatPageClient({
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
                 {channel ? (
-                <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
-                        <AvatarImage src={channel.avatarUrl} />
-                        <AvatarFallback>#</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <span className="text-lg font-semibold">{channel.name}</span>
-                        <p className="text-xs text-muted-foreground">{status}</p>
-                    </div>
-                </div>
+                    <ChannelMembersPopover channel={channel} />
                 ) : (
                 <div className="flex items-center gap-4">
                     <Link href={`/profile/${chatTarget.id}`}>
