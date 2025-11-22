@@ -29,6 +29,7 @@ export default function DMPage({ params }: { params: { id:string } }) {
       currentUser={currentUser}
       messages={dmMessages}
       chatTarget={otherUser}
+      isChannel={false}
     />
   );
 }

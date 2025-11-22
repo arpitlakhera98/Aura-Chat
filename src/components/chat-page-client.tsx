@@ -18,12 +18,14 @@ interface ChatPageClientProps {
   currentUser: User;
   messages: Message[];
   chatTarget: User | Channel;
+  isChannel: boolean;
 }
 
 export function ChatPageClient({
   currentUser,
   messages,
   chatTarget,
+  isChannel,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const [newMessage, setNewMessage] = React.useState('');
@@ -34,8 +36,6 @@ export function ChatPageClient({
     }
   }, [messages]);
   
-  const isChannel = 'name' in chatTarget;
-
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMessage.trim() === '' || !currentUser) return;

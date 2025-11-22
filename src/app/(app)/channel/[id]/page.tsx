@@ -28,6 +28,7 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
       currentUser={currentUser}
       messages={channelMessages}
       chatTarget={channel}
+      isChannel={true}
     />
   );
 }
