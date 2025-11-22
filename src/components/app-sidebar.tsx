@@ -16,7 +16,6 @@ import {
   AvatarImage,
 } from '@/components/ui/avatar';
 import {
-  LogOut,
   Search,
   Settings,
   MessageSquare,
@@ -25,8 +24,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { channels, users, useCurrentUser, setCurrentUserId, addUser, getUserNickname, type User as UserType } from '@/lib/data';
-import { useRouter } from 'next/navigation';
+import { channels, users, useCurrentUser, addUser, getUserNickname, type User as UserType } from '@/lib/data';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
@@ -38,14 +36,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 const NavRail = () => {
     const pathname = usePathname();
-    const router = useRouter();
     const currentUser = useCurrentUser();
-
-    const handleLogout = () => {
-        setCurrentUserId('-1');
-        // window.dispatchEvent(new CustomEvent('local-storage-changed'));
-        router.push('/login');
-    }
 
     const navItems = [
         { href: '/channel/1', icon: MessageSquare, label: 'Chats', active: pathname.startsWith('/channel') || pathname.startsWith('/dm') },
@@ -77,9 +68,6 @@ const NavRail = () => {
                         <Settings className="h-6 w-6" />
                     </Button>
                 </Link>
-                 <Button variant="ghost" size="icon" className="rounded-lg h-12 w-12" onClick={handleLogout}>
-                    <LogOut className="h-6 w-6" />
-                </Button>
             </div>
         </div>
     )
