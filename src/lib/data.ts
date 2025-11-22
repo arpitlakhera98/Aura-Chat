@@ -135,7 +135,7 @@ let messages: Message[] = [
     id: 'msg-ch1-2',
     channelId: '1',
     content: 'Glad to be here! How is everyone doing?',
-    timestamp: '2024-07-29T10:01:00Z',
+    timestamp: '2024--07-29T10:01:00Z',
     user: users[2],
   },
   {
@@ -323,7 +323,7 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const useCurrentUser = (): User | null => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => getCurrentUser());
 
   useEffect(() => {
     const handleUserChange = () => {
@@ -333,22 +333,20 @@ export const useCurrentUser = (): User | null => {
     
     handleUserChange(); // Initial set
     
-    // Listen for changes from other tabs
-    window.addEventListener('storage', handleUserChange);
-    // Listen for changes within the same tab
+    // This custom event is fired when we call `setCurrentUserId` or `updateUser`.
     window.addEventListener('local-storage-changed', handleUserChange);
+    // The 'storage' event is for changes in other tabs.
+    window.addEventListener('storage', handleUserChange);
 
-    // Listen for global user list changes (e.g., adding a new user)
     const unsubscribeUsers = userEmitter.subscribe((newUsers) => {
-        // Find the current user in the new list
         const currentId = getCurrentUserId();
         const updatedUser = newUsers.find(u => u.id === currentId);
         setUser(updatedUser || null);
     });
 
     return () => {
-        window.removeEventListener('storage', handleUserChange);
         window.removeEventListener('local-storage-changed', handleUserChange);
+        window.removeEventListener('storage', handleUserChange);
         unsubscribeUsers();
     };
   }, []);
