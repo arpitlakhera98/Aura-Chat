@@ -13,7 +13,6 @@ import {
   LogOut,
   ShieldBan,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -59,16 +58,16 @@ export default function SettingsPage() {
   const currentUser = useCurrentUser();
   const router = useRouter();
 
+  const handleLogout = () => {
+    setCurrentUserId('-1'); // Using a non-existent ID to signify logged out
+    router.push('/login');
+  }
+  
   if (!currentUser) return (
     <div className="flex h-full items-center justify-center">
         <p>Loading settings...</p>
     </div>
   );
-
-  const handleLogout = () => {
-    setCurrentUserId('-1'); // Using a non-existent ID to signify logged out
-    router.push('/login');
-  }
 
   return (
     <div className="flex h-full flex-col text-card-foreground p-4">
