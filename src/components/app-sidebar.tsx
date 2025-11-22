@@ -15,25 +15,23 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import {
   LogOut,
   Search,
   Settings,
   MessageSquare,
   Phone,
-  User,
-  ChevronDown,
-  PlusCircle,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { channels, users, useCurrentUser, setCurrentUserId, addUser, type User as UserType } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
 
 
 const NavRail = () => {
@@ -42,7 +40,7 @@ const NavRail = () => {
     const currentUser = useCurrentUser();
 
     const handleLogout = () => {
-        setCurrentUserId('-1'); 
+        setCurrentUserId('-1');
         window.dispatchEvent(new CustomEvent('local-storage-changed'));
         router.push('/login');
     }
@@ -51,7 +49,7 @@ const NavRail = () => {
         { href: '/channel/1', icon: MessageSquare, label: 'Chats', active: pathname.startsWith('/channel') || pathname.startsWith('/dm') },
         { href: '/calls', icon: Phone, label: 'Calls' , active: pathname.startsWith('/calls')},
     ];
-    
+
     if (!currentUser) return null;
 
     return (
@@ -101,20 +99,18 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
             return;
         }
 
-        // Using email as a proxy for mobile number as per user type
         addUser({
             name,
             email,
-            age: 25, // dummy data
-            gender: 'Prefer not to say', // dummy data
+            age: 25, 
+            gender: 'Prefer not to say', 
         });
 
         toast({
             title: 'Contact Added!',
             description: `${name} has been added to your contacts.`,
         });
-        
-        // Reset fields and close dialog
+
         setName('');
         setEmail('');
         onOpenChange(false);
@@ -156,108 +152,124 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
     );
 }
 
+const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }) => {
+    const [activeFilter, setActiveFilter] = React.useState('All');
+    const filters = ['All', 'Unread', 'Direct', 'Groups'];
+
+    return (
+        <SidebarHeader className="p-4 border-b border-border/20 space-y-4">
+            <div className="flex items-center justify-between">
+                <h1 className="text-2xl font-bold tracking-tight">CHATS</h1>
+                <Button variant="ghost" size="icon" className="bg-white/10 rounded-full h-10 w-10 text-white hover:bg-white/20" onClick={onAddContactClick}>
+                    <Plus className="h-6 w-6" />
+                </Button>
+            </div>
+            <div className="flex items-center gap-2">
+                {filters.map(filter => (
+                    <Button
+                        key={filter}
+                        variant={activeFilter === filter ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setActiveFilter(filter)}
+                        className={cn(
+                            'rounded-full px-4 py-1 h-auto text-sm font-semibold border-border/30',
+                            activeFilter === filter
+                                ? 'bg-primary text-primary-foreground border-transparent'
+                                : 'bg-transparent text-muted-foreground hover:bg-accent/50 hover:text-white'
+                        )}
+                    >
+                        {filter}
+                    </Button>
+                ))}
+                 <Button variant="outline" size="icon" className="rounded-full h-8 w-8 ml-auto bg-transparent border-border/30 text-muted-foreground hover:bg-accent/50 hover:text-white">
+                    <Search className="h-4 w-4" />
+                </Button>
+            </div>
+        </SidebarHeader>
+    );
+};
+
 
 const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
     const otherUsers = users.filter((user) => user.id !== currentUser?.id);
-    const [isChannelsOpen, setIsChannelsOpen] = React.useState(true);
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
-
-    const [searchTerm, setSearchTerm] = React.useState('');
-
-    const filteredChannels = channels.filter(channel => 
-        channel.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const filteredUsers = otherUsers.filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
     
     return (
-        <div className="w-96 flex flex-col border-r border-border/50 h-full bg-background">
-            <SidebarHeader className="p-4 border-b border-border/50 space-y-4">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold">Chats</h1>
-                    <Button variant="ghost" size="icon" onClick={() => setIsAddContactOpen(true)}>
-                        <PlusCircle className="h-6 w-6 text-primary" />
-                    </Button>
-                </div>
-                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        placeholder="Search chats..."
-                        className="pl-10 bg-input border-none rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-            </SidebarHeader>
-            <SidebarContent className="p-0">
-                <SidebarMenu className="gap-0">
-                   <Collapsible open={isChannelsOpen} onOpenChange={setIsChannelsOpen} className="p-2">
-                        <CollapsibleTrigger className="w-full">
-                           <div className="flex items-center justify-between w-full px-2 py-2">
-                                <h2 className="text-sm font-semibold tracking-wider text-muted-foreground">CHANNELS</h2>
-                                <ChevronDown className={cn("h-5 w-5 text-muted-foreground transition-transform", isChannelsOpen && "rotate-180")} />
-                           </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-1">
-                            {filteredChannels.map((channel) => {
-                                const href = `/channel/${channel.id}`;
-                                const isActive = pathname === href;
-                                return (
-                                    <SidebarMenuItem key={`channel-${channel.id}`}>
-                                        <Link href={href}>
-                                            <div className={cn("flex items-center gap-3 p-2 rounded-lg transition-colors", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                                <div className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
-                                                    <p className="text-primary font-bold text-lg">#</p>
-                                                </div>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <h3 className="font-semibold truncate">{channel.name}</h3>
-                                                    <p className="text-xs text-muted-foreground truncate">
-                                                        Welcome to #{channel.name}
-                                                    </p>
-                                                </div>
+        <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20">
+            <ChatListHeader onAddContactClick={() => setIsAddContactOpen(true)} />
+            <SidebarContent className="p-2 space-y-4">
+                <div className="space-y-2">
+                    <h2 className="px-2 text-xs font-semibold tracking-wider text-muted-foreground">DIRECT MESSAGES</h2>
+                    <SidebarMenu>
+                        {otherUsers.map((user) => {
+                            const href = `/dm/${user.id}`;
+                            const isActive = pathname === href;
+                            return (
+                                <SidebarMenuItem key={`dm-${user.id}`}>
+                                    <Link href={href}>
+                                        <div className={cn(
+                                            "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
+                                            "bg-white/5 border-t border-t-white/10 shadow-lg",
+                                            isActive ? "bg-primary/20 border-t-primary/50" : "hover:bg-white/10"
+                                        )}>
+                                            <Avatar className="h-12 w-12 border-2 border-transparent">
+                                                <AvatarImage src={user.avatarUrl} />
+                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 overflow-hidden">
+                                                <h3 className="font-semibold truncate text-base text-white">{user.name}</h3>
+                                                <p className="text-sm text-muted-foreground truncate">
+                                                    Last message snippet...
+                                                </p>
                                             </div>
-                                        </Link>
-                                    </SidebarMenuItem>
-                                )
-                            })}
-                        </CollapsibleContent>
-                    </Collapsible>
-                    
-                    <div className="p-2">
-                        <h2 className="px-2 py-2 text-sm font-semibold tracking-wider text-muted-foreground">DIRECT MESSAGES</h2>
-                         <div className="space-y-1">
-                            {filteredUsers.map((user) => {
-                                const href = `/dm/${user.id}`;
-                                const isActive = pathname === href;
-                                return (
-                                    <SidebarMenuItem key={`dm-${user.id}`}>
-                                        <Link href={href}>
-                                            <div className={cn("flex items-center gap-3 p-2 rounded-lg transition-colors", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
-                                                <Avatar className="h-10 w-10 border-2 border-transparent relative">
-                                                    <AvatarImage src={user.avatarUrl} />
-                                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                                    {user.lastSeen === 'online' && (
-                                                        <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
-                                                    )}
-                                                </Avatar>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <h3 className="font-semibold truncate">{user.name}</h3>
-                                                    <p className="text-xs text-muted-foreground truncate">
-                                                        Last message snippet...
-                                                    </p>
-                                                </div>
+                                            <div className="flex flex-col items-end gap-1 text-xs">
+                                                 <Badge className="bg-red-500 text-white h-5 w-5 flex items-center justify-center p-0 rounded-full">3</Badge>
+                                                 <p className="text-muted-foreground">10:30 AM</p>
                                             </div>
-                                        </Link>
-                                    </SidebarMenuItem>
-                                )
-                            })}
-                        </div>
-                    </div>
-                </SidebarMenu>
+                                        </div>
+                                    </Link>
+                                </SidebarMenuItem>
+                            )
+                        })}
+                    </SidebarMenu>
+                </div>
+
+                 <div className="space-y-2">
+                    <h2 className="px-2 text-xs font-semibold tracking-wider text-muted-foreground">CHANNELS</h2>
+                    <SidebarMenu>
+                        {channels.map((channel) => {
+                            const href = `/channel/${channel.id}`;
+                            const isActive = pathname === href;
+                            return (
+                                <SidebarMenuItem key={`channel-${channel.id}`}>
+                                    <Link href={href}>
+                                        <div className={cn(
+                                            "flex items-center gap-4 p-3 rounded-lg transition-colors",
+                                            "bg-white/5 border-t border-t-white/10 shadow-lg",
+                                            isActive ? "bg-primary/20 border-t-primary/50" : "hover:bg-white/10"
+                                        )}>
+                                            <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
+                                                <p className="text-primary font-bold text-2xl">#</p>
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                <h3 className="font-semibold truncate text-base text-white">#{channel.name}</h3>
+                                                <p className="text-sm text-muted-foreground truncate">
+                                                    Welcome to #{channel.name}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1 text-xs">
+                                                <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
+                                                <p className="text-muted-foreground">Yesterday</p>
+                                            </div>
+                                        </div>
+                                    </Link>
+                                </SidebarMenuItem>
+                            )
+                        })}
+                    </SidebarMenu>
+                </div>
             </SidebarContent>
             <AddContactDialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen} />
         </div>
