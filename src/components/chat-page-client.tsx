@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -32,7 +31,8 @@ export function ChatPageClient({
   isChannel,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const documentInputRef = React.useRef<HTMLInputElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [newMessage, setNewMessage] = React.useState('');
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -121,19 +121,59 @@ export function ChatPageClient({
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      toast({
+        title: 'Document Selected',
+        description: `${file.name} is ready to be sent. (Feature not fully implemented)`,
+      });
+    }
+  };
 
-  const handleAttachClick = () => {
-    fileInputRef.current?.click();
+  const handleAttachImageClick = () => {
+    imageInputRef.current?.click();
   };
   
+  const handleAttachDocumentClick = () => {
+    documentInputRef.current?.click();
+  };
+
   const handleCameraClick = () => {
     setShowCamera(prev => !prev);
   }
+  
+  const handleLocationClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          toast({
+            title: 'Location Shared',
+            description: `Lat: ${position.coords.latitude.toFixed(4)}, Lon: ${position.coords.longitude.toFixed(4)} (Feature not fully implemented)`,
+          });
+        },
+        (error) => {
+          toast({
+            variant: 'destructive',
+            title: 'Location Access Denied',
+            description: 'Please enable location permissions to use this feature.',
+          });
+        }
+      );
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Geolocation Not Supported',
+        description: 'Your browser does not support geolocation.',
+      });
+    }
+  };
 
   const handleRemoveImage = () => {
     setImagePreview(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    if (imageInputRef.current) {
+        imageInputRef.current.value = '';
     }
   }
 
@@ -287,10 +327,16 @@ export function ChatPageClient({
               <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-1">
                  <input
                     type="file"
-                    ref={fileInputRef}
+                    ref={imageInputRef}
                     onChange={handleImageChange}
                     className="hidden"
                     accept="image/*"
+                  />
+                   <input
+                    type="file"
+                    ref={documentInputRef}
+                    onChange={handleDocumentChange}
+                    className="hidden"
                   />
                   <Popover>
                     <PopoverTrigger asChild>
@@ -301,7 +347,7 @@ export function ChatPageClient({
                     </PopoverTrigger>
                     <PopoverContent className="w-fit p-2">
                         <div className="grid grid-cols-3 gap-2">
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachClick}>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
                                 <ImageIcon className="h-6 w-6" />
                                 <span className="text-xs">Image</span>
                            </Button>
@@ -309,11 +355,11 @@ export function ChatPageClient({
                                 <Camera className="h-6 w-6" />
                                 <span className="text-xs">Camera</span>
                            </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('document')}>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
                                 <FileText className="h-6 w-6" />
                                 <span className="text-xs">Document</span>
                            </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('location')}>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
                                 <MapPin className="h-6 w-6" />
                                 <span className="text-xs">Location</span>
                            </Button>
@@ -340,3 +386,5 @@ export function ChatPageClient({
     </div>
   );
 }
+
+    
