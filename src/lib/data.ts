@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -52,7 +51,7 @@ export let users: User[] = [
   {
     id: '1',
     name: 'Alex',
-    avatarUrl: 'https://picsum.photos/seed/1/40/40',
+    avatarUrl: 'https://picsum.photos/seed/1/96/96',
     age: 28,
     gender: 'Male',
     email: 'alex@example.com',
@@ -63,7 +62,7 @@ export let users: User[] = [
   {
     id: '2',
     name: 'Maya',
-    avatarUrl: 'https://picsum.photos/seed/2/40/40',
+    avatarUrl: 'https://picsum.photos/seed/2/96/96',
     age: 32,
     gender: 'Female',
     email: 'maya@example.com',
@@ -74,7 +73,7 @@ export let users: User[] = [
   {
     id: '3',
     name: 'Leo',
-    avatarUrl: 'https://picsum.photos/seed/3/40/40',
+    avatarUrl: 'https://picsum.photos/seed/3/96/96',
     age: 25,
     gender: 'Male',
     email: 'leo@example.com',
@@ -85,7 +84,7 @@ export let users: User[] = [
   {
     id: '4',
     name: 'Chloe',
-    avatarUrl: 'https://picsum.photos/seed/4/40/40',
+    avatarUrl: 'https://picsum.photos/seed/4/96/96',
     age: 29,
     gender: 'Female',
     email: 'chloe@example.com',
@@ -96,7 +95,7 @@ export let users: User[] = [
   {
     id: '5',
     name: 'Ben',
-    avatarUrl: 'https://picsum.photos/seed/5/40/40',
+    avatarUrl: 'https://picsum.photos/seed/5/96/96',
     age: 35,
     gender: 'Male',
     email: 'ben@example.com',
@@ -107,7 +106,7 @@ export let users: User[] = [
   {
     id: '6',
     name: 'Ravi',
-    avatarUrl: 'https://picsum.photos/seed/6/40/40',
+    avatarUrl: 'https://picsum.photos/seed/6/96/96',
     age: 30,
     gender: 'Male',
     email: 'ravi@example.com',
@@ -233,6 +232,11 @@ messageEmitter.subscribe(newMessages => {
   messages = newMessages;
 });
 
+const userEmitter = new EventEmitter<User[]>();
+userEmitter.subscribe(newUsers => {
+  users = newUsers;
+});
+
 export function addMessage(message: Message) {
   const newMessages = [...messages, message]
   messageEmitter.emit(newMessages);
@@ -258,6 +262,8 @@ const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
 export const setCurrentUserId = (userId: string) => {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(CURRENT_USER_ID_KEY, userId);
+    // Emit user change to update components that depend on the full user list
+    userEmitter.emit(users);
   }
 };
 
@@ -274,18 +280,22 @@ export const useCurrentUser = (): User => {
   const [user, setUser] = useState(users[0]);
 
   useEffect(() => {
-    setUser(getCurrentUser());
-    
-    const handleStorageChange = () => {
+    const handleUserChange = () => {
         setUser(getCurrentUser());
     };
     
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('local-storage-changed', handleStorageChange);
+    handleUserChange(); // Initial set
+    
+    window.addEventListener('storage', handleUserChange);
+    window.addEventListener('local-storage-changed', handleUserChange);
+
+    // Listen for global user list changes
+    const unsubscribe = userEmitter.subscribe(handleUserChange);
 
     return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('local-storage-changed', handleStorageChange);
+        window.removeEventListener('storage', handleUserChange);
+        window.removeEventListener('local-storage-changed', handleUserChange);
+        unsubscribe();
     };
   }, []);
 
@@ -297,13 +307,29 @@ export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive' | 'bio'
     const newUser: User = {
         ...user,
         id: String(users.length + 1),
-        avatarUrl: `https://picsum.photos/seed/${users.length + 1}/40/40`,
+        avatarUrl: `https://picsum.photos/seed/${users.length + 1}/96/96`,
         isActive: true,
         bio: 'New to Aura Chat!',
         lastSeen: 'online',
     }
     users.push(newUser);
+    userEmitter.emit(users);
     return newUser;
+}
+
+export function updateUser(userId: string, updatedData: Partial<User>) {
+    users = users.map(user => 
+        user.id === userId ? { ...user, ...updatedData, id: user.id } : user
+    );
+    // Also update messages to reflect user changes
+    messages = messages.map(message =>
+      message.user.id === userId ? { ...message, user: { ...message.user, ...updatedData, id: message.user.id } } : message
+    );
+
+    // Notify all components about the update
+    userEmitter.emit([...users]);
+    messageEmitter.emit([...messages]);
+    window.dispatchEvent(new CustomEvent('local-storage-changed'));
 }
 
 export const getUserById = (id: string) => {

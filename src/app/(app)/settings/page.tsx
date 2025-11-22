@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useCurrentUser, type User } from '@/lib/data';
+import { useCurrentUser, type User, updateUser } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,26 +26,32 @@ import Image from 'next/image';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
+import { Camera, Trash2 } from 'lucide-react';
 
 function ProfileTabContent() {
   const [isEditing, setIsEditing] = React.useState(false);
   const currentUser = useCurrentUser();
   const [user, setUser] = React.useState<User>(currentUser);
   const { toast } = useToast();
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   React.useEffect(() => {
     setUser(currentUser)
   }, [currentUser])
 
   const handleSave = () => {
+    updateUser(user.id, user);
     setIsEditing(false);
-    // In a real app, you'd save this to a database
-    // For now, we just update the local state which is not persisted.
     toast({
       title: 'Profile Updated',
       description: 'Your profile information has been saved.',
     });
   };
+
+  const handleCancel = () => {
+    setUser(currentUser); // Reset changes
+    setIsEditing(false);
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -55,6 +61,26 @@ function ProfileTabContent() {
   const handleGenderChange = (value: string) => {
     setUser((prev) => ({ ...prev, gender: value as User['gender'] }));
   };
+  
+  const handleAvatarChangeClick = () => {
+    fileInputRef.current?.click();
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUser(prev => ({ ...prev, avatarUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    // For this prototype, we'll just set it to an invalid URL to trigger the fallback
+    setUser(prev => ({ ...prev, avatarUrl: '' }));
+  }
   
   if (!user) {
     return <div>Loading profile...</div>
@@ -70,12 +96,25 @@ function ProfileTabContent() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center space-x-4">
-          <Avatar className="h-24 w-24">
-            <AvatarImage asChild src={user.avatarUrl}>
-              <Image src={user.avatarUrl} alt={user.name} width={96} height={96} />
-            </AvatarImage>
-            <AvatarFallback>{user.name[0]}</AvatarFallback>
-          </Avatar>
+          <div className="relative group">
+            <Avatar className="h-24 w-24">
+                <AvatarImage asChild src={user.avatarUrl} key={user.avatarUrl}>
+                <Image src={user.avatarUrl} alt={user.name} width={96} height={96} />
+                </AvatarImage>
+                <AvatarFallback>{user.name[0]}</AvatarFallback>
+            </Avatar>
+            {isEditing && (
+                 <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={handleAvatarChangeClick}>
+                        <Camera className="h-4 w-4" />
+                    </Button>
+                    <Button variant="destructive" size="icon" className="h-8 w-8 rounded-full" onClick={handleRemoveAvatar}>
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+          </div>
           <div className="space-y-1">
             <h2 className="text-2xl font-bold">{user.name}</h2>
             <p className="text-muted-foreground">{user.email}</p>
@@ -143,7 +182,7 @@ function ProfileTabContent() {
         <div className="flex justify-end">
           {isEditing ? (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
+              <Button variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button onClick={handleSave}>Save Changes</Button>
@@ -203,7 +242,7 @@ function BlockedUsersTabContent() {
                 <CardDescription>
                     Manage users you have blocked. (This feature is not yet implemented).
                 </CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
                 <div className="text-center py-8 text-muted-foreground">
                     <p>You haven&apos;t blocked any users yet.</p>
