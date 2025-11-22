@@ -9,12 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash, ShieldX, Paperclip, X } from 'lucide-react';
+import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -91,6 +92,13 @@ export function ChatPageClient({
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
+  }
+
+  const handlePlaceholderAttachment = (type: string) => {
+    toast({
+        title: 'Feature Not Implemented',
+        description: `Attaching a ${type} is not yet supported.`,
+    });
   }
   
   if (!currentUser) {
@@ -217,7 +225,7 @@ export function ChatPageClient({
                   }
                 }}
               />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-2">
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-1">
                  <input
                     type="file"
                     ref={fileInputRef}
@@ -225,10 +233,39 @@ export function ChatPageClient({
                     className="hidden"
                     accept="image/*"
                   />
-                 <Button type="button" variant="ghost" size="icon" onClick={handleAttachClick}>
-                    <Paperclip className="h-4 w-4" />
-                    <span className="sr-only">Attach file</span>
-                </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon">
+                            <Paperclip className="h-4 w-4" />
+                            <span className="sr-only">Attach file</span>
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-fit p-2">
+                        <div className="grid grid-cols-3 gap-2">
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachClick}>
+                                <ImageIcon className="h-6 w-6" />
+                                <span className="text-xs">Image</span>
+                           </Button>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('camera')}>
+                                <Camera className="h-6 w-6" />
+                                <span className="text-xs">Camera</span>
+                           </Button>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('document')}>
+                                <FileText className="h-6 w-6" />
+                                <span className="text-xs">Document</span>
+                           </Button>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('location')}>
+                                <MapPin className="h-6 w-6" />
+                                <span className="text-xs">Location</span>
+                           </Button>
+                            <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
+                                <Contact className="h-6 w-6" />
+                                <span className="text-xs">Contact</span>
+                           </Button>
+                        </div>
+                    </PopoverContent>
+                  </Popover>
+
                 <Button
                   type="submit"
                   size="icon"
@@ -244,3 +281,4 @@ export function ChatPageClient({
     </div>
   );
 }
+
