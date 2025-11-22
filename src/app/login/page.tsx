@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/logo';
-import { users, setCurrentUserId } from '@/lib/data';
+import { users, setCurrentUserId, getCurrentUser } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LoginPage() {
@@ -25,14 +25,20 @@ export default function LoginPage() {
   const [email, setEmail] = React.useState('alex@example.com');
   const [password, setPassword] = React.useState('password');
 
+  React.useEffect(() => {
+    // If user is already logged in, redirect to the app
+    if (getCurrentUser()) {
+      router.push('/channel/1');
+    }
+  }, [router]);
+
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const user = users.find((u) => u.email === email);
 
     if (user) {
       setCurrentUserId(user.id);
-      // Dispatch a custom event to notify other components of the change
-      window.dispatchEvent(new CustomEvent('local-storage-changed'));
       router.push('/channel/1');
     } else {
       toast({

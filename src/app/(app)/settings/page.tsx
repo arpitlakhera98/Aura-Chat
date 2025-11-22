@@ -59,10 +59,14 @@ export default function SettingsPage() {
   const currentUser = useCurrentUser();
   const router = useRouter();
 
-  if (!currentUser) return null;
+  if (!currentUser) return (
+    <div className="flex h-full items-center justify-center">
+        <p>Loading settings...</p>
+    </div>
+  );
 
   const handleLogout = () => {
-    setCurrentUserId('-1');
+    setCurrentUserId('-1'); // Using a non-existent ID to signify logged out
     router.push('/login');
   }
 

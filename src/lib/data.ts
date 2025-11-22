@@ -305,42 +305,51 @@ export const setCurrentUserId = (userId: string) => {
   }
 };
 
-export const getCurrentUserId = (): string => {
+export const getCurrentUserId = (): string | null => {
     if (typeof window !== 'undefined') {
-        return window.localStorage.getItem(CURRENT_USER_ID_KEY) || '1';
+        return window.localStorage.getItem(CURRENT_USER_ID_KEY);
     }
-    return '1';
+    return null;
 }
 
-export const getCurrentUser = (): User => {
+export const getCurrentUser = (): User | null => {
   if (typeof window !== 'undefined') {
     const storedId = getCurrentUserId();
+    if (!storedId) return null;
     const user = users.find((u) => u.id === storedId);
-    return user || users[0];
+    return user || null;
   }
-  return users[0];
+  return null;
 };
 
-export const useCurrentUser = (): User => {
-  const [user, setUser] = useState(users[0]);
+export const useCurrentUser = (): User | null => {
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const handleUserChange = () => {
-        setUser(getCurrentUser());
+        const currentUser = getCurrentUser();
+        setUser(currentUser);
     };
     
     handleUserChange(); // Initial set
     
+    // Listen for changes from other tabs
     window.addEventListener('storage', handleUserChange);
+    // Listen for changes within the same tab
     window.addEventListener('local-storage-changed', handleUserChange);
 
-    // Listen for global user list changes
-    const unsubscribe = userEmitter.subscribe(handleUserChange);
+    // Listen for global user list changes (e.g., adding a new user)
+    const unsubscribeUsers = userEmitter.subscribe((newUsers) => {
+        // Find the current user in the new list
+        const currentId = getCurrentUserId();
+        const updatedUser = newUsers.find(u => u.id === currentId);
+        setUser(updatedUser || null);
+    });
 
     return () => {
         window.removeEventListener('storage', handleUserChange);
         window.removeEventListener('local-storage-changed', handleUserChange);
-        unsubscribe();
+        unsubscribeUsers();
     };
   }, []);
 
@@ -357,8 +366,8 @@ export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive' | 'bio'
         bio: 'New to Aura Chat!',
         lastSeen: 'online',
     }
-    users.push(newUser);
-    userEmitter.emit(users);
+    const newUsers = [...users, newUser];
+    userEmitter.emit(newUsers);
     return newUser;
 }
 
@@ -384,11 +393,14 @@ export const getUserById = (id: string) => {
 // --- Block Functions ---
 const getBlockedUsersKey = () => {
     const currentUserId = getCurrentUserId();
+    // Return a key that is specific to the logged-in user
     return `${BLOCKED_USERS_KEY_PREFIX}${currentUserId}`;
 }
 
 export const getBlockedUserIds = (): string[] => {
     if (typeof window === 'undefined') return [];
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return []; // No user logged in, no blocks
     const key = getBlockedUsersKey();
     const stored = window.localStorage.getItem(key);
     return stored ? JSON.parse(stored) : [];
@@ -400,6 +412,9 @@ export const isUserBlocked = (userId: string): boolean => {
 
 export const blockUser = (userId: string) => {
     if (typeof window === 'undefined') return;
+    const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+
     const blockedIds = getBlockedUserIds();
     if (!blockedIds.includes(userId)) {
         const newBlockedIds = [...blockedIds, userId];
@@ -411,6 +426,9 @@ export const blockUser = (userId: string) => {
 
 export const unblockUser = (userId: string) => {
     if (typeof window === 'undefined') return;
+     const currentUserId = getCurrentUserId();
+    if (!currentUserId) return;
+
     const blockedIds = getBlockedUserIds();
     const newBlockedIds = blockedIds.filter(id => id !== userId);
     const key = getBlockedUsersKey();
@@ -422,7 +440,9 @@ export const unblockUser = (userId: string) => {
 export const isCurrentUserBlockedBy = (otherUserId: string): boolean => {
     if (typeof window === 'undefined') return false;
     const otherUserBlockedKey = `${BLOCKED_USERS_KEY_PREFIX}${otherUserId}`;
-    const otherUserBlockedIds = JSON.parse(window.localStorage.getItem(otherUserBlockedKey) || '[]');
+    const stored = window.localStorage.getItem(otherUserBlockedKey);
+    const otherUserBlockedIds = stored ? JSON.parse(stored) : [];
     const currentUserId = getCurrentUserId();
+    if (!currentUserId) return false;
     return otherUserBlockedIds.includes(currentUserId);
 }

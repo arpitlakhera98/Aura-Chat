@@ -2,37 +2,26 @@
 'use client';
 
 import * as React from 'react';
-import { useCurrentUser, users, type User } from '@/lib/data';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
-import { redirect } from 'next/navigation';
+import { useCurrentUser } from '@/lib/data';
+import { redirect, useRouter } from 'next/navigation';
 
 export default function ProfileRedirectPage() {
   const currentUser = useCurrentUser();
+  const router = useRouter();
   
   React.useEffect(() => {
     if (currentUser) {
       redirect(`/profile/${currentUser.id}`);
+    } else {
+        // If no user is logged in after a brief wait, redirect to login
+        const timer = setTimeout(() => {
+            if (!currentUser) {
+                router.push('/login');
+            }
+        }, 1000);
+        return () => clearTimeout(timer);
     }
-  }, [currentUser]);
+  }, [currentUser, router]);
 
   return (
     <div className="flex h-full items-center justify-center">
