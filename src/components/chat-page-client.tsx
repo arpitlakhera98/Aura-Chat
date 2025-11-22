@@ -262,62 +262,73 @@ export function ChatPageClient({
 
       <main
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-6 space-y-2 bg-background/90"
+        className="flex-1 overflow-y-auto p-6 space-y-0.5 bg-background/90"
       >
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={cn(
-              'flex items-end gap-3 w-full',
-              message.user.id === currentUser.id ? 'justify-end' : 'justify-start'
-            )}
-          >
-             {message.user.id !== currentUser.id && (
-                 <Avatar className="h-8 w-8 self-start">
-                    <AvatarImage src={message.user.avatarUrl} />
-                    <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                </Avatar>
-            )}
+        {messages.map((message, index) => {
+           const prevMessage = messages[index - 1];
+           const nextMessage = messages[index + 1];
+           const isSender = message.user.id === currentUser.id;
+
+           const showAvatar = !isSender && (!prevMessage || prevMessage.user.id !== message.user.id);
+           const isFirstInGroup = !prevMessage || prevMessage.user.id !== message.user.id;
+           const isLastInGroup = !nextMessage || nextMessage.user.id !== message.user.id;
+           
+          return (
             <div
+              key={message.id}
               className={cn(
-                'group relative max-w-md rounded-2xl px-4 py-2 text-sm md:max-w-lg',
-                message.user.id === currentUser.id
-                  ? 'bg-primary text-primary-foreground rounded-br-none'
-                  : 'bg-muted text-foreground rounded-bl-none',
-                {'p-1': !!message.imageUrl}
+                'flex items-end gap-3 w-full',
+                isSender ? 'justify-end' : 'justify-start'
               )}
             >
-              {message.user.id !== currentUser.id && isChannel && (
-                <p className="text-xs font-semibold pb-1 text-primary">{message.user.name}</p>
-              )}
-              {message.imageUrl ? (
-                <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
+              {showAvatar ? (
+                  <Avatar className="h-8 w-8 self-start">
+                      <AvatarImage src={message.user.avatarUrl} />
+                      <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                  </Avatar>
               ) : (
-                <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                !isSender && <div className="w-8" />
               )}
-               {message.imageUrl && message.content && (
-                  <p className="pt-2">{message.content}</p>
+              <div
+                className={cn(
+                  'group relative max-w-md rounded-2xl px-4 py-2 text-sm md:max-w-lg',
+                  isSender
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-foreground',
+                  isFirstInGroup && (isSender ? 'rounded-tr-lg' : 'rounded-tl-lg'),
+                  isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
+                  !isFirstInGroup && !isLastInGroup && (isSender ? 'rounded-tr-lg rounded-br-lg' : 'rounded-tl-lg rounded-bl-lg'),
+                  {'p-1': !!message.imageUrl}
+                )}
+              >
+                {!isSender && isChannel && isFirstInGroup &&(
+                  <p className="text-xs font-semibold pb-1 text-primary">{message.user.name}</p>
+                )}
+                {message.imageUrl ? (
+                  <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
+                ) : (
+                  <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                )}
+                {message.imageUrl && message.content && (
+                    <p className="pt-2">{message.content}</p>
+                )}
+                <p className="text-xs text-muted-foreground/70 float-right ml-2 mt-1 clear-both">
+                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+                {isLastInGroup && (
+                  <div className={cn(
+                  'absolute bottom-0 w-3 h-3',
+                  isSender ? '-right-1 bg-primary' : '-left-1 bg-muted',
+                  'clip-path-triangle'
+                  )}/>
+                )}
+              </div>
+              {isSender && (
+                  <div className="w-8" />
               )}
-              <p className="text-xs text-muted-foreground/70 float-right ml-2 mt-1 clear-both">
-                  {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-               <div className={cn(
-                'absolute bottom-0 w-3 h-3',
-                 message.user.id === currentUser.id ? '-right-1 bg-primary' : '-left-1 bg-muted',
-                 'group-last:w-3',
-                'clip-path-triangle'
-               )}>
-
-               </div>
             </div>
-             {message.user.id === currentUser.id && (
-                 <Avatar className="h-8 w-8 self-start">
-                    <AvatarImage src={message.user.avatarUrl} />
-                    <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-                </Avatar>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </main>
 
       <footer className="border-t border-border/50 p-4 bg-card">
@@ -437,3 +448,5 @@ export function ChatPageClient({
     </div>
   );
 }
+
+    
