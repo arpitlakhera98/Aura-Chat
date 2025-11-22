@@ -196,22 +196,22 @@ export function ChatPageClient({
     : null;
 
   return (
-    <div className="flex h-screen flex-col bg-[#0b141a]">
-      <header className="flex h-16 items-center justify-between gap-4 border-b border-white/10 bg-card px-4">
+    <div className="flex h-screen flex-col bg-background">
+      <header className="flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-card px-6">
         {isChannel ? (
           <div className="flex items-center gap-3 font-semibold">
             <Hash className="h-6 w-6 text-muted-foreground" />
             <span className="text-lg">{chatTarget.name}</span>
           </div>
         ) : (
-          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 border">
+          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-4">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={(chatTarget as User).avatarUrl} />
               <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
                 <span className="font-semibold text-base">{chatTarget.name}</span>
-                {status && <span className="text-xs text-muted-foreground">{status}</span>}
+                {status && <span className="text-xs text-primary">{status}</span>}
             </div>
           </Link>
         )}
@@ -232,45 +232,51 @@ export function ChatPageClient({
 
       <main
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-4 space-y-2 bg-[url('https://i.imgur.com/hiXwM6p.png')] bg-center bg-opacity-5"
+        className="flex-1 overflow-y-auto p-6 space-y-4 bg-background/90"
       >
         {messages.map((message) => (
           <div
             key={message.id}
             className={cn(
-              'flex items-end gap-2',
+              'flex items-end gap-3',
               message.user.id === currentUser.id ? 'justify-end' : 'justify-start'
             )}
           >
+             {message.user.id !== currentUser.id && (
+                 <Avatar className="h-8 w-8">
+                    <AvatarImage src={message.user.avatarUrl} />
+                    <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                </Avatar>
+            )}
             <div
               className={cn(
-                'max-w-xs rounded-lg px-3 py-2 text-sm md:max-w-md',
+                'max-w-md rounded-2xl px-4 py-3 text-sm md:max-w-lg',
                 message.user.id === currentUser.id
-                  ? 'bg-primary text-white'
-                  : 'bg-secondary text-white',
+                  ? 'bg-primary text-white rounded-br-none'
+                  : 'bg-muted text-foreground rounded-bl-none',
                 {'p-1': !!message.imageUrl}
               )}
             >
               {message.user.id !== currentUser.id && isChannel && (
-                <p className="text-xs font-semibold pb-1 text-accent-foreground/80">{message.user.name}</p>
+                <p className="text-xs font-semibold pb-1 text-primary">{message.user.name}</p>
               )}
               {message.imageUrl ? (
-                <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-md" />
+                <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-lg" />
               ) : (
-                <p>{message.content}</p>
+                <p className="leading-relaxed">{message.content}</p>
               )}
                {message.imageUrl && message.content && (
                   <p className="pt-2">{message.content}</p>
               )}
-              <span className="text-xs text-muted-foreground/70 float-right ml-2 mt-1">
+              <p className="text-xs text-muted-foreground/70 float-right ml-2 mt-1 clear-both">
                   {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
+              </p>
             </div>
           </div>
         ))}
       </main>
 
-      <footer className="border-t border-white/10 p-4 bg-card">
+      <footer className="border-t border-border/50 p-4 bg-card">
         <form onSubmit={handleSendMessage} className="flex items-center gap-2">
             <Popover>
                 <PopoverTrigger asChild>
@@ -306,23 +312,23 @@ export function ChatPageClient({
                 <PopoverContent className="w-fit p-2 mb-2" side="top" align="start">
                     <div className="grid grid-cols-3 gap-2">
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
-                            <ImageIcon className="h-6 w-6" />
+                            <ImageIcon className="h-6 w-6 text-primary" />
                             <span className="text-xs">Image</span>
                        </Button>
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
-                            <Camera className="h-6 w-6" />
+                            <Camera className="h-6 w-6 text-primary" />
                             <span className="text-xs">Camera</span>
                        </Button>
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
-                            <FileText className="h-6 w-6" />
+                            <FileText className="h-6 w-6 text-primary" />
                             <span className="text-xs">Document</span>
                        </Button>
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
-                            <MapPin className="h-6 w-6" />
+                            <MapPin className="h-6 w-6 text-primary" />
                             <span className="text-xs">Location</span>
                        </Button>
                         <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
-                            <Contact className="h-6 w-6" />
+                            <Contact className="h-6 w-6 text-primary" />
                             <span className="text-xs">Contact</span>
                        </Button>
                     </div>
@@ -360,7 +366,7 @@ export function ChatPageClient({
             )}
               <Textarea
                 placeholder="Type a message"
-                className="resize-none pr-12 pl-4 py-2 rounded-full bg-muted"
+                className="resize-none pr-12 pl-4 py-2 rounded-full bg-muted border-none"
                 rows={1}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -373,7 +379,7 @@ export function ChatPageClient({
               />
             </div>
             {newMessage.trim() || imagePreview ? (
-                 <Button type="submit" size="icon" className="rounded-full">
+                 <Button type="submit" size="icon" className="rounded-full bg-primary h-10 w-10">
                   <SendHorizonal className="h-5 w-5" />
                   <span className="sr-only">Send</span>
                 </Button>

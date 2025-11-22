@@ -7,12 +7,8 @@ import { usePathname } from 'next/navigation';
 import {
   SidebarHeader,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
   Avatar,
@@ -21,17 +17,15 @@ import {
 } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
-  Hash,
   LogOut,
   Search,
   Settings,
-  Users,
   MessageSquare,
-  Circle,
-  Archive
+  Phone,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { channels, users, useCurrentUser, setCurrentUserId, type User } from '@/lib/data';
+import { channels, users, useCurrentUser, setCurrentUserId, type User as UserType } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 
@@ -39,6 +33,7 @@ import { Button } from './ui/button';
 const NavRail = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const currentUser = useCurrentUser();
 
     const handleLogout = () => {
         setCurrentUserId('-1'); 
@@ -47,28 +42,33 @@ const NavRail = () => {
 
     const navItems = [
         { href: '/channel/1', icon: MessageSquare, label: 'Chats', active: pathname.startsWith('/channel') || pathname.startsWith('/dm') },
-        { href: '#', icon: Users, label: 'Groups' },
-        { href: '#', icon: Circle, label: 'Status' },
+        { href: '/calls', icon: Phone, label: 'Calls' , active: pathname.startsWith('/calls')},
     ];
     
+    if (!currentUser) return null;
+
     return (
-        <div className="flex flex-col items-center justify-between h-full w-16 bg-card py-4">
-            <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center justify-between h-full w-20 bg-card py-6">
+            <div className="flex flex-col items-center gap-2">
+                <Avatar className="h-12 w-12 border-2 border-primary mb-4">
+                  <AvatarImage src={currentUser.avatarUrl} />
+                  <AvatarFallback>{currentUser.name[0]}</AvatarFallback>
+                </Avatar>
                  {navItems.map((item) => (
                     <Link key={item.label} href={item.href} title={item.label}>
-                        <Button variant="ghost" size="icon" className={cn("rounded-lg", item.active && "bg-accent text-accent-foreground")}>
+                        <Button variant="ghost" size="icon" className={cn("rounded-lg h-12 w-12", item.active && "bg-accent text-primary")}>
                             <item.icon className="h-6 w-6" />
                         </Button>
                     </Link>
                 ))}
             </div>
-             <div className="flex flex-col items-center gap-4">
+             <div className="flex flex-col items-center gap-2">
                  <Link href="/settings" title="Settings">
-                    <Button variant="ghost" size="icon" className={cn("rounded-lg", pathname.startsWith('/settings') && "bg-accent text-accent-foreground")}>
+                    <Button variant="ghost" size="icon" className={cn("rounded-lg h-12 w-12", pathname.startsWith('/settings') && "bg-accent text-primary")}>
                         <Settings className="h-6 w-6" />
                     </Button>
                 </Link>
-                 <Button variant="ghost" size="icon" className="rounded-lg" onClick={handleLogout}>
+                 <Button variant="ghost" size="icon" className="rounded-lg h-12 w-12" onClick={handleLogout}>
                     <LogOut className="h-6 w-6" />
                 </Button>
             </div>
@@ -80,58 +80,80 @@ const NavRail = () => {
 const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
-    const otherUsers = users.filter((user) => user.id !== currentUser.id);
+    const otherUsers = users.filter((user) => user.id !== currentUser?.id);
 
     const [searchTerm, setSearchTerm] = React.useState('');
+
+    const filteredChannels = channels.filter(channel => 
+        channel.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const filteredUsers = otherUsers.filter((user) =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const allChats = [
-        ...channels.map(c => ({...c, type: 'channel'})),
-        ...filteredUsers.map(u => ({...u, type: 'dm'}))
-    ];
     
     return (
-        <div className="w-96 flex flex-col border-r h-full">
-            <SidebarHeader className="p-4">
+        <div className="w-96 flex flex-col border-r border-border/50 h-full bg-background">
+            <SidebarHeader className="p-4 border-b border-border/50">
                  <h1 className="text-2xl font-bold">Chats</h1>
                  <div className="relative mt-4">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
-                        placeholder="Search or start new chat"
-                        className="pl-9 bg-card"
+                        placeholder="Search chats"
+                        className="pl-10 bg-muted border-none rounded-full"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
             </SidebarHeader>
-            <SidebarContent className="p-0">
-                <SidebarMenu className="gap-0">
+            <SidebarContent className="p-2">
+                <SidebarMenu className="gap-1">
                     <SidebarMenuItem>
-                         <button className="flex items-center gap-4 px-4 py-3 w-full hover:bg-muted">
-                            <Archive className="h-5 w-5 text-muted-foreground" />
-                            <span className="font-medium">Archived</span>
-                        </button>
+                         <h2 className="px-3 text-sm font-semibold text-muted-foreground mt-2">Channels</h2>
                     </SidebarMenuItem>
-                    {allChats.map((chat) => {
-                        const href = chat.type === 'channel' ? `/channel/${chat.id}` : `/dm/${chat.id}`;
+                    {filteredChannels.map((channel) => {
+                        const href = `/channel/${channel.id}`;
                         const isActive = pathname === href;
                         return (
-                             <SidebarMenuItem key={`${chat.type}-${chat.id}`}>
+                            <SidebarMenuItem key={`channel-${channel.id}`}>
                                 <Link href={href}>
-                                     <div className={cn("flex items-start gap-3 p-4 border-b border-transparent", isActive ? "bg-muted" : "hover:bg-muted/50")}>
-                                        <Avatar className="h-12 w-12 border">
-                                            {chat.type === 'dm' && <AvatarImage src={(chat as User).avatarUrl} />}
-                                            <AvatarFallback>{chat.name.charAt(0)}</AvatarFallback>
+                                     <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
+                                        <Avatar className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
+                                            <AvatarFallback className="bg-transparent text-primary font-bold text-lg">#</AvatarFallback>
                                         </Avatar>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between">
-                                                <h3 className="font-semibold">{chat.name}</h3>
-                                                <p className="text-xs text-muted-foreground">10:30 AM</p>
-                                            </div>
+                                        <div className="flex-1 overflow-hidden">
+                                            <h3 className="font-semibold truncate">{channel.name}</h3>
                                             <p className="text-sm text-muted-foreground truncate">
-                                                {chat.type === 'channel' ? `Welcome to #${chat.name}` : 'Last message snippet...'}
+                                                Welcome to #{channel.name}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </Link>
+                             </SidebarMenuItem>
+                        )
+                    })}
+
+                    <SidebarMenuItem>
+                         <h2 className="px-3 text-sm font-semibold text-muted-foreground mt-4">Direct Messages</h2>
+                    </SidebarMenuItem>
+                     {filteredUsers.map((user) => {
+                        const href = `/dm/${user.id}`;
+                        const isActive = pathname === href;
+                        return (
+                             <SidebarMenuItem key={`dm-${user.id}`}>
+                                <Link href={href}>
+                                     <div className={cn("flex items-center gap-3 p-3 rounded-lg", isActive ? "bg-accent text-white" : "hover:bg-accent/50")}>
+                                        <Avatar className="h-12 w-12 border-2 border-transparent relative">
+                                            <AvatarImage src={user.avatarUrl} />
+                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                             {user.lastSeen === 'online' && (
+                                                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-primary border-2 border-background" />
+                                            )}
+                                        </Avatar>
+                                        <div className="flex-1 overflow-hidden">
+                                            <h3 className="font-semibold truncate">{user.name}</h3>
+                                            <p className="text-sm text-muted-foreground truncate">
+                                                Last message snippet...
                                             </p>
                                         </div>
                                     </div>
