@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -32,8 +33,11 @@ export function ChatPageClient({
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   const [newMessage, setNewMessage] = React.useState('');
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [showCamera, setShowCamera] = React.useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = React.useState(true);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -41,6 +45,41 @@ export function ChatPageClient({
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  React.useEffect(() => {
+    if (showCamera) {
+        const getCameraPermission = async () => {
+          try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera not supported');
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({video: true});
+            setHasCameraPermission(true);
+
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+            }
+          } catch (error) {
+            console.error('Error accessing camera:', error);
+            setHasCameraPermission(false);
+            toast({
+              variant: 'destructive',
+              title: 'Camera Access Denied',
+              description: 'Please enable camera permissions in your browser settings to use this feature.',
+            });
+          }
+        };
+
+        getCameraPermission();
+    } else {
+        // Stop camera stream when not shown
+        if (videoRef.current && videoRef.current.srcObject) {
+            const stream = videoRef.current.srcObject as MediaStream;
+            stream.getTracks().forEach(track => track.stop());
+            videoRef.current.srcObject = null;
+        }
+    }
+  }, [showCamera, toast]);
   
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +125,10 @@ export function ChatPageClient({
   const handleAttachClick = () => {
     fileInputRef.current?.click();
   };
+  
+  const handleCameraClick = () => {
+    setShowCamera(prev => !prev);
+  }
 
   const handleRemoveImage = () => {
     setImagePreview(null);
@@ -211,6 +254,22 @@ export function ChatPageClient({
                     </Button>
                 </div>
             )}
+            {showCamera && (
+                <div className="p-2 relative">
+                    <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted />
+                    {!hasCameraPermission && (
+                         <Alert variant="destructive" className="mt-2">
+                            <AlertTitle>Camera Access Required</AlertTitle>
+                            <AlertDescription>
+                                Please allow camera access in your browser settings to use this feature.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                     <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={() => setShowCamera(false)}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
             <div className="relative">
               <Textarea
                 placeholder="Type your message..."
@@ -246,7 +305,7 @@ export function ChatPageClient({
                                 <ImageIcon className="h-6 w-6" />
                                 <span className="text-xs">Image</span>
                            </Button>
-                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('camera')}>
+                           <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
                                 <Camera className="h-6 w-6" />
                                 <span className="text-xs">Camera</span>
                            </Button>
@@ -281,4 +340,3 @@ export function ChatPageClient({
     </div>
   );
 }
-
