@@ -10,7 +10,6 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, Search } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
-import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -222,7 +221,6 @@ export function ChatPageClient({
               <Search className="h-5 w-5 text-muted-foreground" />
               <span className="sr-only">Search</span>
             </Button>
-          {isChannel && <SummarizeDialog messages={messages} />}
           {!isChannel && (
             <Button variant="ghost" size="icon" onClick={handleBlockUser}>
               <ShieldX className="h-5 w-5 text-muted-foreground" />

@@ -112,7 +112,7 @@ const ChatList = () => {
             <SidebarContent className="p-2">
                 <SidebarMenu className="gap-1">
                     <SidebarMenuItem>
-                         <h2 className="px-3 text-sm font-semibold text-muted-foreground mt-2">Channels</h2>
+                         <h2 className="px-3 text-sm font-semibold text-primary mt-2">Channels</h2>
                     </SidebarMenuItem>
                     {filteredChannels.map((channel) => {
                         const href = `/channel/${channel.id}`;
@@ -137,7 +137,7 @@ const ChatList = () => {
                     })}
 
                     <SidebarMenuItem>
-                         <h2 className="px-3 text-sm font-semibold text-muted-foreground mt-4">Direct Messages</h2>
+                         <h2 className="px-3 text-sm font-semibold text-primary mt-4">Direct Messages</h2>
                     </SidebarMenuItem>
                      {filteredUsers.map((user) => {
                         const href = `/dm/${user.id}`;
