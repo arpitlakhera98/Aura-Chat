@@ -30,10 +30,11 @@ export type User = {
   email: string;
   isActive: boolean;
   bio: string;
+  lastSeen: string | 'online';
 };
 
 export type Channel = {
-  id: string;
+  id:string;
   name: string;
 };
 
@@ -56,6 +57,7 @@ export let users: User[] = [
     email: 'alex@example.com',
     isActive: true,
     bio: 'Software engineer and coffee enthusiast.',
+    lastSeen: 'online',
   },
   {
     id: '2',
@@ -66,6 +68,7 @@ export let users: User[] = [
     email: 'maya@example.com',
     isActive: true,
     bio: 'Designer, painter, and dog lover.',
+    lastSeen: 'online',
   },
   {
     id: '3',
@@ -76,6 +79,7 @@ export let users: User[] = [
     email: 'leo@example.com',
     isActive: false,
     bio: 'Musician and part-time philosopher.',
+    lastSeen: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
   },
   {
     id: '4',
@@ -86,6 +90,7 @@ export let users: User[] = [
     email: 'chloe@example.com',
     isActive: true,
     bio: 'Marketing guru and travel addict.',
+    lastSeen: 'online',
   },
   {
     id: '5',
@@ -96,6 +101,7 @@ export let users: User[] = [
     email: 'ben@example.com',
     isActive: false,
     bio: 'Product manager, always learning.',
+    lastSeen: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
   },
   {
     id: '6',
@@ -106,6 +112,7 @@ export let users: User[] = [
     email: 'ravi@example.com',
     isActive: true,
     bio: 'Building the future, one line of code at a time.',
+    lastSeen: 'online',
   },
 ];
 
@@ -234,7 +241,9 @@ export function useMessages() {
     const [currentMessages, setMessages] = useState(messages);
 
     useEffect(() => {
-        const unsubscribe = messageEmitter.subscribe(setMessages);
+        const unsubscribe = messageEmitter.subscribe(newMessages => {
+          setMessages([...newMessages]);
+        });
         // Also emit the current state in case it was updated before subscribing
         setMessages(messages); 
         return () => unsubscribe();
@@ -283,13 +292,14 @@ export const useCurrentUser = (): User => {
 }
 
 
-export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive' | 'bio'>) {
+export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive' | 'bio' | 'lastSeen'>) {
     const newUser: User = {
         ...user,
         id: String(users.length + 1),
         avatarUrl: `https://picsum.photos/seed/${users.length + 1}/40/40`,
         isActive: true,
         bio: 'New to Aura Chat!',
+        lastSeen: 'online',
     }
     users.push(newUser);
     return newUser;

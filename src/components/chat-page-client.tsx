@@ -10,7 +10,7 @@ import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import { SendHorizonal, Hash, ShieldX } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatLastSeen } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -71,21 +71,31 @@ export function ChatPageClient({
     return <div>Loading chat...</div>;
   }
 
+  const otherUser = isChannel ? null : (chatTarget as User);
+  const status = otherUser
+    ? otherUser.lastSeen === 'online'
+      ? 'Online'
+      : `Last seen ${formatLastSeen(otherUser.lastSeen)}`
+    : null;
+
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex h-14 items-center gap-4 border-b bg-card px-4">
+      <header className="flex h-16 items-center gap-4 border-b bg-card px-4">
         {isChannel ? (
-          <div className="flex items-center gap-2 font-semibold">
+          <div className="flex items-center gap-3 font-semibold">
             <Hash className="h-6 w-6 text-muted-foreground" />
-            <span>{chatTarget.name}</span>
+            <span className="text-lg">{chatTarget.name}</span>
           </div>
         ) : (
-          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-2 font-semibold hover:underline">
-            <Avatar className="h-8 w-8 border">
+          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 border">
               <AvatarImage src={(chatTarget as User).avatarUrl} />
               <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
             </Avatar>
-            <span>{chatTarget.name}</span>
+            <div className="flex flex-col">
+                <span className="font-semibold text-base">{chatTarget.name}</span>
+                {status && <span className="text-xs text-muted-foreground">{status}</span>}
+            </div>
           </Link>
         )}
         <div className="ml-auto flex items-center gap-2">
