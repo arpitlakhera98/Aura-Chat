@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -35,6 +36,11 @@ const nextConfig: NextConfig = {
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  devIndicators: {
+    allowedDevOrigins: [
+        'https://6000-firebase-studio-1763809365706.cluster-edb2jv34dnhjisxuq5m7l37ccy.cloudworkstations.dev'
+    ]
+  }
 };
 
 export default nextConfig;
