@@ -21,10 +21,11 @@ import {
   Settings,
   MessageSquare,
   Phone,
-  Plus,
+  PlusCircle,
+  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { channels, users, useCurrentUser, setCurrentUserId, addUser, type User as UserType } from '@/lib/data';
+import { channels, users, useCurrentUser, setCurrentUserId, addUser, getUserNickname, type User as UserType } from '@/lib/data';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
@@ -32,6 +33,7 @@ import { Label } from './ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 const NavRail = () => {
@@ -41,7 +43,7 @@ const NavRail = () => {
 
     const handleLogout = () => {
         setCurrentUserId('-1');
-        window.dispatchEvent(new CustomEvent('local-storage-changed'));
+        // window.dispatchEvent(new CustomEvent('local-storage-changed'));
         router.push('/login');
     }
 
@@ -159,10 +161,14 @@ const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }
     return (
         <SidebarHeader className="p-4 border-b border-border/20 space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight">CHATS</h1>
-                <Button variant="ghost" size="icon" className="bg-white/10 rounded-full h-10 w-10 text-white hover:bg-white/20" onClick={onAddContactClick}>
-                    <Plus className="h-6 w-6" />
+                <h1 className="text-2xl font-bold tracking-tight text-primary">CHATS</h1>
+                <Button variant="ghost" size="icon" className="bg-primary/20 text-primary rounded-full h-10 w-10 hover:bg-primary/30" onClick={onAddContactClick}>
+                    <PlusCircle className="h-6 w-6" />
                 </Button>
+            </div>
+             <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input placeholder="Search chats..." className="pl-10 bg-black/30 border-white/10 rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]" />
             </div>
             <div className="flex items-center gap-2">
                 {filters.map(filter => (
@@ -181,9 +187,6 @@ const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }
                         {filter}
                     </Button>
                 ))}
-                 <Button variant="outline" size="icon" className="rounded-full h-8 w-8 ml-auto bg-transparent border-border/30 text-muted-foreground hover:bg-accent/50 hover:text-white">
-                    <Search className="h-4 w-4" />
-                </Button>
             </div>
         </SidebarHeader>
     );
@@ -193,83 +196,111 @@ const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }
 const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
-    const otherUsers = users.filter((user) => user.id !== currentUser?.id);
+    const [otherUsers, setOtherUsers] = React.useState<UserType[]>([]);
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const updateUsers = () => {
+            if (currentUser) {
+                const filteredUsers = users.filter(user => user.id !== currentUser.id);
+                setOtherUsers(filteredUsers);
+            }
+        };
+
+        updateUsers();
+
+        window.addEventListener('local-storage-changed', updateUsers);
+        return () => window.removeEventListener('local-storage-changed', updateUsers);
+    }, [currentUser]);
     
     return (
         <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20">
             <ChatListHeader onAddContactClick={() => setIsAddContactOpen(true)} />
             <SidebarContent className="p-2 space-y-4">
-                <div className="space-y-2">
-                    <h2 className="px-2 text-xs font-semibold tracking-wider text-muted-foreground">DIRECT MESSAGES</h2>
-                    <SidebarMenu>
-                        {otherUsers.map((user) => {
-                            const href = `/dm/${user.id}`;
-                            const isActive = pathname === href;
-                            return (
-                                <SidebarMenuItem key={`dm-${user.id}`}>
-                                    <Link href={href}>
-                                        <div className={cn(
-                                            "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
-                                            "bg-white/5 border-t border-t-white/10 shadow-lg",
-                                            isActive ? "bg-primary/20 border-t-primary/50" : "hover:bg-white/10"
-                                        )}>
-                                            <Avatar className="h-12 w-12 border-2 border-transparent">
-                                                <AvatarImage src={user.avatarUrl} />
-                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="flex-1 overflow-hidden">
-                                                <h3 className="font-semibold truncate text-base text-white">{user.name}</h3>
-                                                <p className="text-sm text-muted-foreground truncate">
-                                                    Last message snippet...
-                                                </p>
+                <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                        <h2 className="text-sm font-bold tracking-wider text-primary">DIRECT MESSAGES</h2>
+                         <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarMenu className="pt-2">
+                            {otherUsers.map((user) => {
+                                const href = `/dm/${user.id}`;
+                                const isActive = pathname === href;
+                                const displayName = getUserNickname(user.id) || user.name;
+                                return (
+                                    <SidebarMenuItem key={`dm-${user.id}`}>
+                                        <Link href={href}>
+                                            <div className={cn(
+                                                "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
+                                                "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border border-white/10",
+                                                "shadow-lg",
+                                                isActive ? "border-t-primary/80" : "border-t-white/10 hover:bg-white/10"
+                                            )}>
+                                                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                                                <Avatar className="h-12 w-12 border-2 border-transparent">
+                                                    <AvatarImage src={user.avatarUrl} />
+                                                    <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h3 className="font-semibold truncate text-base text-white">{displayName}</h3>
+                                                    <p className="text-sm text-muted-foreground truncate">
+                                                        Last message snippet...
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1 text-xs">
+                                                     <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">3</Badge>
+                                                     <p className="text-muted-foreground">10:30 AM</p>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col items-end gap-1 text-xs">
-                                                 <Badge className="bg-red-500 text-white h-5 w-5 flex items-center justify-center p-0 rounded-full">3</Badge>
-                                                 <p className="text-muted-foreground">10:30 AM</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </SidebarMenuItem>
-                            )
-                        })}
-                    </SidebarMenu>
-                </div>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                )
+                            })}
+                        </SidebarMenu>
+                    </CollapsibleContent>
+                </Collapsible>
 
-                 <div className="space-y-2">
-                    <h2 className="px-2 text-xs font-semibold tracking-wider text-muted-foreground">CHANNELS</h2>
-                    <SidebarMenu>
-                        {channels.map((channel) => {
-                            const href = `/channel/${channel.id}`;
-                            const isActive = pathname === href;
-                            return (
-                                <SidebarMenuItem key={`channel-${channel.id}`}>
-                                    <Link href={href}>
-                                        <div className={cn(
-                                            "flex items-center gap-4 p-3 rounded-lg transition-colors",
-                                            "bg-white/5 border-t border-t-white/10 shadow-lg",
-                                            isActive ? "bg-primary/20 border-t-primary/50" : "hover:bg-white/10"
-                                        )}>
-                                            <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
-                                                <p className="text-primary font-bold text-2xl">#</p>
+                 <Collapsible defaultOpen>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                       <h2 className="text-sm font-bold tracking-wider text-primary">CHANNELS</h2>
+                       <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                        <SidebarMenu className="pt-2">
+                            {channels.map((channel) => {
+                                const href = `/channel/${channel.id}`;
+                                const isActive = pathname === href;
+                                return (
+                                    <SidebarMenuItem key={`channel-${channel.id}`}>
+                                        <Link href={href}>
+                                            <div className={cn(
+                                                "flex items-center gap-4 p-3 rounded-lg transition-colors",
+                                                "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border",
+                                                 "shadow-lg",
+                                                isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
+                                            )}>
+                                                <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
+                                                    <p className="text-primary font-bold text-2xl">#</p>
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
+                                                    <p className="text-sm text-muted-foreground truncate">
+                                                        Welcome to #{channel.name}
+                                                    </p>
+                                                </div>
+                                                <div className="flex flex-col items-end gap-1 text-xs">
+                                                    <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
+                                                    <p className="text-muted-foreground">Yesterday</p>
+                                                </div>
                                             </div>
-                                            <div className="flex-1 overflow-hidden">
-                                                <h3 className="font-semibold truncate text-base text-white">#{channel.name}</h3>
-                                                <p className="text-sm text-muted-foreground truncate">
-                                                    Welcome to #{channel.name}
-                                                </p>
-                                            </div>
-                                            <div className="flex flex-col items-end gap-1 text-xs">
-                                                <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
-                                                <p className="text-muted-foreground">Yesterday</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </SidebarMenuItem>
-                            )
-                        })}
-                    </SidebarMenu>
-                </div>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                )
+                            })}
+                        </SidebarMenu>
+                     </CollapsibleContent>
+                </Collapsible>
             </SidebarContent>
             <AddContactDialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen} />
         </div>

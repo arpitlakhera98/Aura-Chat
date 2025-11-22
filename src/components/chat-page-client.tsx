@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage } from '@/lib/data';
+import { addMessage, getUserNickname } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical } from 'lucide-react';
@@ -43,12 +43,28 @@ export function ChatPageClient({
   const [showCamera, setShowCamera] = React.useState(false);
   const [hasCameraPermission, setHasCameraPermission] = React.useState(true);
   const { toast } = useToast();
+  const [displayName, setDisplayName] = React.useState(chatTarget.name);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
+
+  React.useEffect(() => {
+    const updateDisplayName = () => {
+      if (!isChannel) {
+        const nickname = getUserNickname(chatTarget.id);
+        setDisplayName(nickname || chatTarget.name);
+      }
+    };
+    updateDisplayName();
+
+    window.addEventListener('local-storage-changed', updateDisplayName);
+    return () => {
+      window.removeEventListener('local-storage-changed', updateDisplayName);
+    };
+  }, [chatTarget, isChannel]);
 
   React.useEffect(() => {
     if (showCamera) {
@@ -214,16 +230,16 @@ export function ChatPageClient({
                     <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
                         <span className="text-primary font-bold text-xl">#</span>
                     </Avatar>
-                    <span className="text-lg">{chatTarget.name}</span>
+                    <span className="text-lg">{displayName}</span>
                 </div>
                 ) : (
                 <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-4">
                     <Avatar className="h-12 w-12 border-2 border-primary/50">
                     <AvatarImage src={(chatTarget as User).avatarUrl} />
-                    <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
+                    <AvatarFallback>{displayName[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                        <span className="font-semibold text-base">{chatTarget.name}</span>
+                        <span className="font-semibold text-base">{displayName}</span>
                         {status && <span className="text-xs text-primary">{status}</span>}
                     </div>
                 </Link>
@@ -436,5 +452,3 @@ export function ChatPageClient({
     </div>
   );
 }
-
-    

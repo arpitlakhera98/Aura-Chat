@@ -258,12 +258,37 @@ export function useMessages() {
 }
 
 const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
+const NICKNAMES_KEY = 'aura-chat-nicknames';
+
+// --- Nickname Functions ---
+const getNicknames = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  const stored = window.localStorage.getItem(NICKNAMES_KEY);
+  return stored ? JSON.parse(stored) : {};
+};
+
+export const getUserNickname = (userId: string): string | undefined => {
+  return getNicknames()[userId];
+};
+
+export const setUserNickname = (userId: string, nickname: string) => {
+  if (typeof window === 'undefined') return;
+  const nicknames = getNicknames();
+  if (nickname.trim()) {
+    nicknames[userId] = nickname.trim();
+  } else {
+    delete nicknames[userId]; // Remove nickname if it's empty
+  }
+  window.localStorage.setItem(NICKNAMES_KEY, JSON.stringify(nicknames));
+  window.dispatchEvent(new CustomEvent('local-storage-changed')); // Notify components
+};
+
 
 export const setCurrentUserId = (userId: string) => {
   if (typeof window !== 'undefined') {
     window.localStorage.setItem(CURRENT_USER_ID_KEY, userId);
     // Emit user change to update components that depend on the full user list
-    userEmitter.emit(users);
+    window.dispatchEvent(new CustomEvent('local-storage-changed'));
   }
 };
 
