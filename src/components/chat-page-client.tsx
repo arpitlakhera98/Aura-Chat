@@ -3,10 +3,10 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname, blockUser } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser, removeUserFromChannel } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog, UserPlus, LogOut } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ import {
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { SummarizeDialog } from './summarize-dialog';
+import { useRouter } from 'next/navigation';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -49,6 +50,7 @@ export function ChatPageClient({
   isChannel,
   onClearChat,
 }: ChatPageClientProps) {
+  const router = useRouter();
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const documentInputRef = React.useRef<HTMLInputElement>(null);
@@ -63,6 +65,7 @@ export function ChatPageClient({
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = React.useState(false);
   const [isClearChatDialogOpen, setIsClearChatDialogOpen] = React.useState(false);
   const [isBlockUserDialogOpen, setIsBlockUserDialogOpen] = React.useState(false);
+  const [isLeaveChannelOpen, setIsLeaveChannelOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -74,6 +77,8 @@ export function ChatPageClient({
     if (!isChannel) {
       const nickname = getUserNickname(chatTarget.id);
       setDisplayName(nickname || chatTarget.name);
+    } else {
+        setDisplayName(chatTarget.name);
     }
   }, [chatTarget, isChannel]);
 
@@ -262,17 +267,29 @@ export function ChatPageClient({
         description: `The nickname for ${chatTarget.name} has been set.`,
     });
   };
+
+  const handleLeaveChannel = () => {
+      if (!isChannel) return;
+      removeUserFromChannel(chatTarget.id, currentUser.id);
+      setIsLeaveChannelOpen(false);
+      toast({
+          title: "You have left the channel",
+          description: `You are no longer a member of #${chatTarget.name}.`,
+      });
+      router.push('/channel/1'); // Redirect to a default channel
+  }
   
   if (!currentUser || !chatTarget) {
     return <div className="flex h-full items-center justify-center"><p>Loading chat...</p></div>;
   }
 
   const otherUser = isChannel ? null : (chatTarget as User);
+  const channel = isChannel ? (chatTarget as Channel) : null;
   const status = otherUser
     ? otherUser.lastSeen === 'online'
       ? 'Online'
       : `Last seen ${formatLastSeen(otherUser.lastSeen)}`
-    : `${(chatTarget as Channel).name} members`;
+    : `${channel?.memberIds.length} members`;
 
   const isAdmin = isChannel && (chatTarget as Channel).adminId === currentUser.id;
 
@@ -280,7 +297,7 @@ export function ChatPageClient({
     <div className="flex h-screen flex-col bg-transparent relative">
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
-                {isChannel ? (
+                {isChannel && channel ? (
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
                         <span className="text-primary font-bold text-xl">#</span>
@@ -324,9 +341,15 @@ export function ChatPageClient({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
-                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
-                                Change theme
-                            </DropdownMenuItem>
+                            {isChannel && (
+                                <>
+                                 <DropdownMenuItem onClick={() => handlePlaceholderAction('Add members')} className="flex items-center gap-2">
+                                     <UserPlus className="h-4 w-4" />
+                                    Add members
+                                </DropdownMenuItem>
+                                {isAdmin && <DropdownMenuItem onClick={() => handlePlaceholderAction('Edit Channel')}>Edit channel</DropdownMenuItem>}
+                                </>
+                            )}
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             <DropdownMenuSeparator className="bg-white/10"/>
                             <DropdownMenuItem onClick={() => setIsClearChatDialogOpen(true)} className="flex items-center gap-2">
@@ -338,6 +361,12 @@ export function ChatPageClient({
                                 <DropdownMenuItem onClick={() => setIsBlockUserDialogOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
                                     <ShieldBan className="h-4 w-4" />
                                     Block user
+                                </DropdownMenuItem>
+                            )}
+                            {isChannel && (
+                                <DropdownMenuItem onClick={() => setIsLeaveChannelOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
+                                    <LogOut className="h-4 w-4" />
+                                    Leave channel
                                 </DropdownMenuItem>
                             )}
                         </DropdownMenuContent>
@@ -474,6 +503,23 @@ export function ChatPageClient({
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
+      
+      <AlertDialog open={isLeaveChannelOpen} onOpenChange={setIsLeaveChannelOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+              <AlertDialogTitle>Leave #{displayName}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                  You will no longer receive notifications from this channel and it will be removed from your channel list.
+              </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleLeaveChannel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Leave
+              </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
 
       <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <div className="mx-auto max-w-4xl">
@@ -593,5 +639,3 @@ export function ChatPageClient({
     </div>
   );
 }
-
-    

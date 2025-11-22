@@ -33,9 +33,10 @@ export type User = {
 };
 
 export type Channel = {
-  id:string;
+  id: string;
   name: string;
   adminId: string;
+  memberIds: string[];
 };
 
 export type Message = {
@@ -117,10 +118,10 @@ export let users: User[] = [
   },
 ];
 
-export const channels: Channel[] = [
-  { id: '1', name: 'general', adminId: '1' },
-  { id: '2', name: 'design-team', adminId: '1' },
-  { id: '3', name: 'random', adminId: '1' },
+let channelsData: Channel[] = [
+  { id: '1', name: 'general', adminId: '1', memberIds: ['1', '2', '3', '4', '6'] },
+  { id: '2', name: 'design-team', adminId: '2', memberIds: ['2', '5'] },
+  { id: '3', name: 'random', adminId: '1', memberIds: ['1', '3', '4'] },
 ];
 
 let messages: Message[] = [
@@ -238,6 +239,29 @@ userEmitter.subscribe(newUsers => {
   users = newUsers;
 });
 
+const channelEmitter = new EventEmitter<Channel[]>();
+channelEmitter.subscribe(newChannels => {
+  channelsData = newChannels;
+});
+
+export function useChannels() {
+    const [currentChannels, setChannels] = useState(channelsData);
+
+    useEffect(() => {
+        const unsubscribe = channelEmitter.subscribe(newChannels => {
+          setChannels([...newChannels]);
+        });
+        setChannels(channelsData); 
+        return () => unsubscribe();
+    }, []);
+
+    return currentChannels;
+}
+
+export function getChannels() {
+    return channelsData;
+}
+
 export function addMessage(message: Message) {
   const newMessages = [...messages, message]
   messageEmitter.emit(newMessages);
@@ -253,6 +277,19 @@ export function clearMessagesForDM(dmId: string) {
   messageEmitter.emit(newMessages);
 }
 
+export function removeUserFromChannel(channelId: string, userId: string) {
+    const newChannels = channelsData.map(c => {
+        if (c.id === channelId) {
+            return {
+                ...c,
+                memberIds: c.memberIds.filter(id => id !== userId),
+            };
+        }
+        return c;
+    });
+    channelEmitter.emit(newChannels);
+}
+
 
 export function useMessages() {
     const [currentMessages, setMessages] = useState(messages);
@@ -261,7 +298,6 @@ export function useMessages() {
         const unsubscribe = messageEmitter.subscribe(newMessages => {
           setMessages([...newMessages]);
         });
-        // Also emit the current state in case it was updated before subscribing
         setMessages(messages); 
         return () => unsubscribe();
     }, []);
@@ -470,15 +506,18 @@ export const markChatAsRead = (chatId: string) => {
 
 export const getUnreadMessageCount = (chatId: string, allMessages: Message[]): number => {
     if (typeof window === 'undefined') return 0;
+    const currentUserId = getCurrentUserId();
     const lastReadTimestamp = getLastReadTimestamps()[chatId];
-    if (!lastReadTimestamp) {
-        // If never read, all messages are unread
-        return allMessages.filter(m => (m.channelId === chatId || m.dmId === chatId)).length;
-    }
-    return allMessages.filter(m => {
-        const isCorrectChat = m.channelId === chatId || m.dmId === chatId;
-        return isCorrectChat && new Date(m.timestamp) > new Date(lastReadTimestamp);
-    }).length;
-};
-
     
+    const relevantMessages = allMessages.filter(m => 
+        (m.channelId === chatId || m.dmId === chatId) && m.user.id !== currentUserId
+    );
+
+    if (!lastReadTimestamp) {
+        return relevantMessages.length;
+    }
+    
+    return relevantMessages.filter(m => 
+        new Date(m.timestamp) > new Date(lastReadTimestamp)
+    ).length;
+};

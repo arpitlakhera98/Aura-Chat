@@ -23,8 +23,8 @@ import {
   PlusCircle,
   ChevronDown,
 } from 'lucide-react';
-import { cn, formatLastSeen } from '@/lib/utils';
-import { channels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message, getUnreadMessageCount } from '@/lib/data';
+import { cn } from '@/lib/utils';
+import { useChannels, getChannels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message, getUnreadMessageCount } from '@/lib/data';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
@@ -197,6 +197,7 @@ const ChatList = () => {
     const pathname = usePathname();
     const currentUser = useCurrentUser();
     const allMessages = useMessages();
+    const channels = useChannels();
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
     const [activeFilter, setActiveFilter] = React.useState<ChatFilter>('All');
     
@@ -241,6 +242,7 @@ const ChatList = () => {
     }, [currentUser, allMessages]);
 
     const sortedChannels = React.useMemo(() => {
+        if (!currentUser) return [];
         const lastMessages: Record<string, Message> = {};
         allMessages.forEach(msg => {
             if (msg.channelId) {
@@ -251,6 +253,7 @@ const ChatList = () => {
         });
 
         return channels
+            .filter(channel => channel.memberIds.includes(currentUser.id))
             .map(channel => ({
                 channel,
                 lastMessage: lastMessages[channel.id] || null
@@ -260,7 +263,7 @@ const ChatList = () => {
                 if (!b.lastMessage) return -1;
                 return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
             });
-    }, [allMessages]);
+    }, [allMessages, channels, currentUser]);
 
     const filteredDMs = React.useMemo(() => {
         if (activeFilter === 'All' || activeFilter === 'Direct') return sortedDMs;
@@ -379,7 +382,7 @@ const ChatList = () => {
                                                         {unreadCount > 0 ? (
                                                             <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
                                                         ) : (
-                                                            <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
+                                                            channel.memberIds.length < 5 && <Badge variant="secondary" className="bg-green-500/80 text-white border-0">Join</Badge>
                                                         )}
                                                         <p className={cn("text-muted-foreground", unreadCount > 0 && "mt-auto")}>{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
                                                     </div>
@@ -407,5 +410,3 @@ export function AppSidebar() {
         </div>
     );
 }
-
-    
