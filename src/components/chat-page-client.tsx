@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash, ShieldX } from 'lucide-react';
+import { SendHorizonal, Hash, ShieldX, Paperclip, X } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
@@ -30,7 +30,9 @@ export function ChatPageClient({
   isChannel,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [newMessage, setNewMessage] = React.useState('');
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const { toast } = useToast();
 
   React.useEffect(() => {
@@ -41,11 +43,12 @@ export function ChatPageClient({
   
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '' || !currentUser) return;
+    if ((newMessage.trim() === '' && !imagePreview) || !currentUser) return;
 
     const message: Message = {
       id: `msg-${Date.now()}`,
       content: newMessage,
+      imageUrl: imagePreview || undefined,
       timestamp: new Date().toISOString(),
       user: currentUser,
     };
@@ -58,6 +61,7 @@ export function ChatPageClient({
 
     addMessage(message);
     setNewMessage('');
+    setImagePreview(null);
   };
 
   const handleBlockUser = () => {
@@ -66,6 +70,28 @@ export function ChatPageClient({
       description: `You have blocked ${(chatTarget as User).name}. This is a placeholder action.`,
     });
   };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAttachClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  }
   
   if (!currentUser) {
     return <div>Loading chat...</div>;
@@ -136,13 +162,21 @@ export function ChatPageClient({
                 'max-w-xs rounded-lg p-3 text-sm md:max-w-md',
                 message.user.id === currentUser.id
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-card'
+                  : 'bg-card',
+                {'p-1': !!message.imageUrl}
               )}
             >
               {message.user.id !== currentUser.id && (
-                <p className="text-xs font-semibold pb-1">{message.user.name}</p>
+                <p className="text-xs font-semibold pb-1 px-2">{message.user.name}</p>
               )}
-              <p>{message.content}</p>
+              {message.imageUrl ? (
+                <Image src={message.imageUrl} alt="Sent image" width={300} height={200} className="rounded-md" />
+              ) : (
+                <p>{message.content}</p>
+              )}
+               {message.imageUrl && message.content && (
+                  <p className="pt-2 px-2">{message.content}</p>
+              )}
             </div>
              {message.user.id === currentUser.id && (
                <Link href={`/profile/${message.user.id}`}>
@@ -161,6 +195,14 @@ export function ChatPageClient({
       <footer className="border-t p-4 bg-card">
         <form onSubmit={handleSendMessage}>
           <Card>
+            {imagePreview && (
+                <div className="p-2 relative">
+                    <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md" />
+                     <Button variant="ghost" size="icon" className="absolute top-0 right-0 h-6 w-6" onClick={handleRemoveImage}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
             <div className="relative">
               <Textarea
                 placeholder="Type your message..."
@@ -175,14 +217,26 @@ export function ChatPageClient({
                   }
                 }}
               />
-              <Button
-                type="submit"
-                size="icon"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2"
-              >
-                <SendHorizonal className="h-4 w-4" />
-                <span className="sr-only">Send</span>
-              </Button>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex gap-2">
+                 <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                 <Button type="button" variant="ghost" size="icon" onClick={handleAttachClick}>
+                    <Paperclip className="h-4 w-4" />
+                    <span className="sr-only">Attach file</span>
+                </Button>
+                <Button
+                  type="submit"
+                  size="icon"
+                >
+                  <SendHorizonal className="h-4 w-4" />
+                  <span className="sr-only">Send</span>
+                </Button>
+              </div>
             </div>
           </Card>
         </form>

@@ -41,6 +41,7 @@ export type Channel = {
 export type Message = {
   id: string;
   content: string;
+  imageUrl?: string;
   timestamp: string;
   user: User;
   channelId?: string;
