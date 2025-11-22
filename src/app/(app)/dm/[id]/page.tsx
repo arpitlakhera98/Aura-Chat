@@ -6,8 +6,9 @@ import { users, messages, useCurrentUser, type User, type Message } from '@/lib/
 import { ChatPageClient } from '@/components/chat-page-client';
 
 export default function DMPage({ params }: { params: { id: string } }) {
+  const resolvedParams = React.use(params);
   const currentUser = useCurrentUser();
-  const otherUser = users.find((u) => u.id === params.id);
+  const otherUser = users.find((u) => u.id === resolvedParams.id);
   const [dmMessages, setDmMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {

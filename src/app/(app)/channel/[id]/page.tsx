@@ -6,8 +6,9 @@ import { channels, messages, useCurrentUser, type Channel, type Message } from '
 import { ChatPageClient } from '@/components/chat-page-client';
 
 export default function ChannelPage({ params }: { params: { id: string } }) {
+  const resolvedParams = React.use(params);
   const currentUser = useCurrentUser();
-  const channel = channels.find((c) => c.id === params.id);
+  const channel = channels.find((c) => c.id === resolvedParams.id);
   const [channelMessages, setChannelMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
