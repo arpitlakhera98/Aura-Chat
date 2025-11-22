@@ -5,10 +5,8 @@ import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
 import { addMessage } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Card } from './ui/card';
-import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -78,7 +76,6 @@ export function ChatPageClient({
 
         getCameraPermission();
     } else {
-        // Stop camera stream when not shown
         if (videoRef.current && videoRef.current.srcObject) {
             const stream = videoRef.current.srcObject as MediaStream;
             stream.getTracks().forEach(track => track.stop());
@@ -209,60 +206,62 @@ export function ChatPageClient({
     : null;
 
   return (
-    <div className="flex h-screen flex-col bg-card">
-      <header className="flex h-16 items-center justify-between gap-4 border-b border-border/50 bg-card px-6">
-        {isChannel ? (
-          <div className="flex items-center gap-3 font-semibold">
-            <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-lg">
-                <AvatarFallback className="bg-transparent text-primary font-bold text-xl">#</AvatarFallback>
-            </Avatar>
-            <span className="text-lg">{chatTarget.name}</span>
-          </div>
-        ) : (
-          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-4">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={(chatTarget as User).avatarUrl} />
-              <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-                <span className="font-semibold text-base">{chatTarget.name}</span>
-                {status && <span className="text-xs text-primary">{status}</span>}
+    <div className="flex h-screen flex-col bg-transparent relative">
+        <header className="absolute top-0 left-0 right-0 z-10 p-4">
+            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+                {isChannel ? (
+                <div className="flex items-center gap-3 font-semibold">
+                    <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
+                        <span className="text-primary font-bold text-xl">#</span>
+                    </Avatar>
+                    <span className="text-lg">{chatTarget.name}</span>
+                </div>
+                ) : (
+                <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12 border-2 border-primary/50">
+                    <AvatarImage src={(chatTarget as User).avatarUrl} />
+                    <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                        <span className="font-semibold text-base">{chatTarget.name}</span>
+                        {status && <span className="text-xs text-primary">{status}</span>}
+                    </div>
+                </Link>
+                )}
+                 <div className="ml-auto flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="rounded-full h-10 w-10">
+                                <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                                <span className="sr-only">More options</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
+                                Chat theme
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Share user')}>
+                                Share user
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handlePlaceholderAction('Remove user')}>
+                                Remove user
+                            </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
+                                Clear chat
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/10"/>
+                            <DropdownMenuItem onClick={handleBlockUser} className="text-red-400 focus:bg-red-500/20 focus:text-red-300">
+                                Block chat
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
-          </Link>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-5 w-5 text-muted-foreground" />
-                        <span className="sr-only">More options</span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
-                        Chat theme
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Share user')}>
-                        Share user
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Remove user')}>
-                        Remove user
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
-                        Clear chat
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleBlockUser} className="text-destructive">
-                        Block chat
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-      </header>
+        </header>
 
       <main
         ref={scrollAreaRef}
-        className="flex-1 overflow-y-auto p-6 space-y-0.5 bg-background/90"
+        className="flex-1 overflow-y-auto p-6 space-y-2 pt-28 pb-28"
       >
         {messages.map((message, index) => {
            const prevMessage = messages[index - 1];
@@ -282,23 +281,20 @@ export function ChatPageClient({
               )}
             >
               {showAvatar ? (
-                  <Avatar className="h-8 w-8 self-start">
+                  <Avatar className="h-8 w-8 self-end mb-1">
                       <AvatarImage src={message.user.avatarUrl} />
                       <AvatarFallback>{message.user.name[0]}</AvatarFallback>
                   </Avatar>
               ) : (
-                !isSender && <div className="w-8" />
+                !isSender && <div className="w-11" />
               )}
               <div
                 className={cn(
-                  'group relative max-w-md rounded-2xl px-4 py-2 text-sm md:max-w-lg',
+                  'group relative max-w-md rounded-2xl px-4 py-2.5 text-base md:max-w-lg',
                   isSender
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-foreground',
-                  isFirstInGroup && (isSender ? 'rounded-tr-lg' : 'rounded-tl-lg'),
-                  isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
-                  !isFirstInGroup && !isLastInGroup && (isSender ? 'rounded-tr-lg rounded-br-lg' : 'rounded-tl-lg rounded-bl-lg'),
-                  {'p-1': !!message.imageUrl}
+                    ? 'bg-primary text-primary-foreground rounded-br-none'
+                    : 'bg-muted text-foreground rounded-bl-none animate-aurora-glow border border-white/10',
+                   {'p-1.5': !!message.imageUrl}
                 )}
               >
                 {!isSender && isChannel && isFirstInGroup &&(
@@ -312,34 +308,26 @@ export function ChatPageClient({
                 {message.imageUrl && message.content && (
                     <p className="pt-2">{message.content}</p>
                 )}
-                <p className="text-xs text-muted-foreground/70 float-right ml-2 mt-1 clear-both">
+                <p className="text-xs text-muted-foreground/80 float-right ml-4 mt-1 clear-both">
                     {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
-                {isLastInGroup && (
-                  <div className={cn(
-                  'absolute bottom-0 w-3 h-3',
-                  isSender ? '-right-1 bg-primary' : '-left-1 bg-muted',
-                  'clip-path-triangle'
-                  )}/>
-                )}
+                
               </div>
-              {isSender && (
-                  <div className="w-8" />
-              )}
             </div>
           )
         })}
       </main>
 
-      <footer className="border-t border-border/50 p-4 bg-card">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+      <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
+        <div className="mx-auto max-w-4xl">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon">
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full">
                         <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2">
+                <PopoverContent className="w-fit p-2 bg-black/80 border-white/10 text-white">
                     <p>Emoji picker placeholder</p>
                 </PopoverContent>
             </Popover>
@@ -359,30 +347,30 @@ export function ChatPageClient({
               />
               <Popover>
                 <PopoverTrigger asChild>
-                    <Button type="button" variant="ghost" size="icon">
+                    <Button type="button" variant="ghost" size="icon" className="rounded-full">
                         <Paperclip className="h-5 w-5 text-muted-foreground" />
                         <span className="sr-only">Attach file</span>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 mb-2" side="top" align="start">
+                <PopoverContent className="w-fit p-2 mb-2 bg-black/80 border-white/10" side="top" align="start">
                     <div className="grid grid-cols-3 gap-2">
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleAttachImageClick}>
                             <ImageIcon className="h-6 w-6 text-primary" />
                             <span className="text-xs">Image</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleCameraClick}>
                             <Camera className="h-6 w-6 text-primary" />
                             <span className="text-xs">Camera</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleAttachDocumentClick}>
                             <FileText className="h-6 w-6 text-primary" />
                             <span className="text-xs">Document</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleLocationClick}>
                             <MapPin className="h-6 w-6 text-primary" />
                             <span className="text-xs">Location</span>
                        </Button>
-                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
+                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => handlePlaceholderAttachment('contact')}>
                             <Contact className="h-6 w-6 text-primary" />
                             <span className="text-xs">Contact</span>
                        </Button>
@@ -419,10 +407,9 @@ export function ChatPageClient({
                     </div>
                 </div>
             )}
-              <Textarea
+              <input
                 placeholder="Type a message"
-                className="resize-none pr-12 pl-4 py-2 rounded-full bg-input border-none"
-                rows={1}
+                className="bg-transparent w-full border-none focus:ring-0 focus:outline-none text-white placeholder:text-muted-foreground"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {
@@ -439,11 +426,12 @@ export function ChatPageClient({
                   <span className="sr-only">Send</span>
                 </Button>
             ) : (
-                <Button type="button" size="icon" variant="ghost">
-                    <Mic className="h-5 w-5 text-muted-foreground" />
+                <Button type="button" size="icon" className="bg-primary rounded-full h-10 w-10 hover:bg-primary/90">
+                    <Mic className="h-5 w-5 text-primary-foreground" />
                 </Button>
             )}
         </form>
+        </div>
       </footer>
     </div>
   );
