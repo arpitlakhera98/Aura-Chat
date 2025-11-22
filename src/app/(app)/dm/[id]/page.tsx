@@ -23,10 +23,3 @@ export default function DMPage({ params }: { params: { id: string } }) {
     />
   );
 }
-
-export function generateStaticParams() {
-    const currentUser = getCurrentUser();
-    return users.filter(u => u.id !== currentUser.id).map((user) => ({
-      id: user.id,
-    }));
-  }

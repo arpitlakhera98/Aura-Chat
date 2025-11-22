@@ -20,9 +20,3 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
     />
   );
 }
-
-export function generateStaticParams() {
-  return channels.map((channel) => ({
-    id: channel.id,
-  }));
-}
