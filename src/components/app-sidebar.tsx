@@ -28,6 +28,8 @@ import {
   Search,
   Settings,
   Users,
+  Phone,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { channels, users, useCurrentUser, setCurrentUserId, type User } from '@/lib/data';
@@ -45,6 +47,8 @@ export function AppSidebar() {
   const filteredUsers = otherUsers.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+  const isChatActive = pathname.startsWith('/channel') || pathname.startsWith('/dm');
 
   const handleLogout = () => {
     // By setting to a non-existent ID, we default to the first user on next login
@@ -61,66 +65,91 @@ export function AppSidebar() {
           </div>
           <SidebarTrigger />
         </div>
-        <div className="relative group-data-[collapsible=icon]:-mx-1.5">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search users..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Channels</SidebarGroupLabel>
+         <SidebarGroup>
           <SidebarMenu>
-            {channels.map((channel) => (
-              <SidebarMenuItem key={channel.id}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === `/channel/${channel.id}`}
-                  tooltip={channel.name}
-                >
-                  <Link href={`/channel/${channel.id}`}>
-                    <Hash />
-                    <span>{channel.name}</span>
-                  </Link>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isChatActive} tooltip="Chats">
+                    <Link href="/channel/1">
+                        <MessageSquare />
+                        <span>Chats</span>
+                    </Link>
                 </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/calls')} tooltip="Calls">
+                    <Link href="/calls">
+                        <Phone />
+                        <span>Calls</span>
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
+        
+        {isChatActive && (
+          <>
+            <div className="relative group-data-[collapsible=icon]:-mx-1.5 px-2">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users..."
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <SidebarGroup>
+              <SidebarGroupLabel>Channels</SidebarGroupLabel>
+              <SidebarMenu>
+                {channels.map((channel) => (
+                  <SidebarMenuItem key={channel.id}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === `/channel/${channel.id}`}
+                      tooltip={channel.name}
+                    >
+                      <Link href={`/channel/${channel.id}`}>
+                        <Hash />
+                        <span>{channel.name}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Direct Messages</SidebarGroupLabel>
-          <SidebarMenu>
-            {filteredUsers.map((user) => (
-              <SidebarMenuItem key={user.id}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === `/dm/${user.id}`}
-                  tooltip={user.name}
-                >
-                  <Link href={`/dm/${user.id}`} className="flex items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-5 w-5">
-                        <AvatarImage src={user.avatarUrl} alt={user.name} />
-                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span>{user.name}</span>
-                    </div>
-                    {user.isActive && <div className="h-2 w-2 rounded-full bg-green-500" />}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-            {filteredUsers.length === 0 && (
-                <p className="px-2 text-sm text-muted-foreground">No users found.</p>
-            )}
-          </SidebarMenu>
-        </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupLabel>Direct Messages</SidebarGroupLabel>
+              <SidebarMenu>
+                {filteredUsers.map((user) => (
+                  <SidebarMenuItem key={user.id}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === `/dm/${user.id}`}
+                      tooltip={user.name}
+                    >
+                      <Link href={`/dm/${user.id}`} className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-5 w-5">
+                            <AvatarImage src={user.avatarUrl} alt={user.name} />
+                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <span>{user.name}</span>
+                        </div>
+                        {user.isActive && <div className="h-2 w-2 rounded-full bg-green-500" />}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+                {filteredUsers.length === 0 && (
+                    <p className="px-2 text-sm text-muted-foreground">No users found.</p>
+                )}
+              </SidebarMenu>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
       <SidebarSeparator />
