@@ -28,6 +28,7 @@ export type User = {
   age: number;
   gender: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
   email: string;
+  isActive: boolean;
 };
 
 export type Channel = {
@@ -52,6 +53,7 @@ export let users: User[] = [
     age: 28,
     gender: 'Male',
     email: 'alex@example.com',
+    isActive: true,
   },
   {
     id: '2',
@@ -60,6 +62,7 @@ export let users: User[] = [
     age: 32,
     gender: 'Female',
     email: 'maya@example.com',
+    isActive: true,
   },
   {
     id: '3',
@@ -68,6 +71,7 @@ export let users: User[] = [
     age: 25,
     gender: 'Male',
     email: 'leo@example.com',
+    isActive: false,
   },
   {
     id: '4',
@@ -76,6 +80,7 @@ export let users: User[] = [
     age: 29,
     gender: 'Female',
     email: 'chloe@example.com',
+    isActive: true,
   },
   {
     id: '5',
@@ -84,6 +89,7 @@ export let users: User[] = [
     age: 35,
     gender: 'Male',
     email: 'ben@example.com',
+    isActive: false,
   },
   {
     id: '6',
@@ -92,6 +98,7 @@ export let users: User[] = [
     age: 30,
     gender: 'Male',
     email: 'ravi@example.com',
+    isActive: true,
   },
 ];
 
@@ -207,10 +214,13 @@ let messages: Message[] = [
 
 
 const messageEmitter = new EventEmitter<Message[]>();
+messageEmitter.subscribe(newMessages => {
+  messages = newMessages;
+});
 
 export function addMessage(message: Message) {
-  messages.push(message);
-  messageEmitter.emit([...messages]);
+  const newMessages = [...messages, message]
+  messageEmitter.emit(newMessages);
 }
 
 export function useMessages() {
@@ -218,6 +228,8 @@ export function useMessages() {
 
     useEffect(() => {
         const unsubscribe = messageEmitter.subscribe(setMessages);
+        // Also emit the current state in case it was updated before subscribing
+        setMessages(messages); 
         return () => unsubscribe();
     }, []);
 
@@ -264,11 +276,12 @@ export const useCurrentUser = (): User => {
 }
 
 
-export function addUser(user: Omit<User, 'id' | 'avatarUrl'>) {
+export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive'>) {
     const newUser: User = {
         ...user,
         id: String(users.length + 1),
         avatarUrl: `https://picsum.photos/seed/${users.length + 1}/40/40`,
+        isActive: true,
     }
     users.push(newUser);
     return newUser;

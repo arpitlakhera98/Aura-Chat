@@ -23,8 +23,10 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
-export default function ProfilePage() {
+function ProfileTabContent() {
   const [isEditing, setIsEditing] = React.useState(false);
   const currentUser = useCurrentUser();
   const [user, setUser] = React.useState<User>(currentUser);
@@ -58,89 +60,172 @@ export default function ProfilePage() {
   }
 
   return (
+    <Card>
+      <CardHeader>
+        <CardTitle>User Profile</CardTitle>
+        <CardDescription>
+          View and manage your profile information.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <Avatar className="h-24 w-24">
+            <AvatarImage asChild src={user.avatarUrl}>
+              <Image src={user.avatarUrl} alt={user.name} width={96} height={96} />
+            </AvatarImage>
+            <AvatarFallback>{user.name[0]}</AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold">{user.name}</h2>
+            <p className="text-muted-foreground">{user.email}</p>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              name="name"
+              value={user.name}
+              disabled={!isEditing}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" value={user.email} disabled />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="age">Age</Label>
+            <Input
+              id="age"
+              name="age"
+              type="number"
+              value={user.age}
+              disabled={!isEditing}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="gender">Gender</Label>
+            <Select
+              name="gender"
+              value={user.gender}
+              disabled={!isEditing}
+              onValueChange={handleGenderChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+                <SelectItem value="Prefer not to say">
+                  Prefer not to say
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="flex justify-end">
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>Save Changes</Button>
+            </div>
+          ) : (
+            <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AppearanceTabContent() {
+    // This is a placeholder for theme switching logic
+    const handleThemeChange = (theme: string) => {
+        // In a real app, you would apply the theme here.
+        // For now, we just log it.
+        console.log(`Theme changed to: ${theme}`);
+    };
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>
+                    Customize the look and feel of the application.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="space-y-2">
+                    <Label className="text-base">Theme</Label>
+                    <p className="text-sm text-muted-foreground">Select a theme. (This feature is not yet implemented).</p>
+                </div>
+                 <RadioGroup defaultValue="dark" className="grid max-w-md grid-cols-2 gap-8 pt-2" onValueChange={handleThemeChange}>
+                    <Label className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                        <RadioGroupItem value="light" className="sr-only" />
+                        <span className="mb-2 text-sm font-medium">Light</span>
+                        <div className="w-full h-24 rounded-lg bg-gray-200" />
+                    </Label>
+                    <Label className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                        <RadioGroupItem value="dark" className="sr-only" />
+                        <span className="mb-2 text-sm font-medium">Dark</span>
+                        <div className="w-full h-24 rounded-lg bg-gray-800" />
+                    </Label>
+                </RadioGroup>
+            </CardContent>
+        </Card>
+    )
+}
+
+function BlockedUsersTabContent() {
+    // This is a placeholder for showing blocked users.
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle>Blocked Users</CardTitle>
+                <CardDescription>
+                    Manage users you have blocked. (This feature is not yet implemented).
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="text-center py-8 text-muted-foreground">
+                    <p>You haven&apos;t blocked any users yet.</p>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+export default function SettingsPage() {
+  return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>User Profile</CardTitle>
-          <CardDescription>
-            View and manage your profile information.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage asChild src={user.avatarUrl}>
-                <Image src={user.avatarUrl} alt={user.name} width={96} height={96} />
-              </AvatarImage>
-              <AvatarFallback>{user.name[0]}</AvatarFallback>
-            </Avatar>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-bold">{user.name}</h2>
-              <p className="text-muted-foreground">{user.email}</p>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                name="name"
-                value={user.name}
-                disabled={!isEditing}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" value={user.email} disabled />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
-              <Input
-                id="age"
-                name="age"
-                type="number"
-                value={user.age}
-                disabled={!isEditing}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="gender">Gender</Label>
-              <Select
-                name="gender"
-                value={user.gender}
-                disabled={!isEditing}
-                onValueChange={handleGenderChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                  <SelectItem value="Prefer not to say">
-                    Prefer not to say
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="flex justify-end">
-            {isEditing ? (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setIsEditing(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSave}>Save Changes</Button>
-              </div>
-            ) : (
-              <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+       <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your account settings and preferences.
+          </p>
+        </div>
+      <Tabs defaultValue="profile" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="blocked">Blocked Users</TabsTrigger>
+        </TabsList>
+        <TabsContent value="profile">
+          <ProfileTabContent />
+        </TabsContent>
+        <TabsContent value="appearance">
+          <AppearanceTabContent />
+        </TabsContent>
+        <TabsContent value="blocked">
+            <BlockedUsersTabContent />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

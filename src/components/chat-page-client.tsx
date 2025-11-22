@@ -9,10 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash } from 'lucide-react';
+import { SendHorizonal, Hash, ShieldX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -29,6 +30,7 @@ export function ChatPageClient({
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const [newMessage, setNewMessage] = React.useState('');
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -56,6 +58,13 @@ export function ChatPageClient({
     addMessage(message);
     setNewMessage('');
   };
+
+  const handleBlockUser = () => {
+    toast({
+      title: 'User Blocked (Not Implemented)',
+      description: `You have blocked ${(chatTarget as User).name}. This is a placeholder action.`,
+    });
+  };
   
   if (!currentUser) {
     return <div>Loading chat...</div>;
@@ -75,8 +84,14 @@ export function ChatPageClient({
           )}
           <span>{chatTarget.name}</span>
         </div>
-        <div className="ml-auto">
-          <SummarizeDialog messages={messages} />
+        <div className="ml-auto flex items-center gap-2">
+          {isChannel && <SummarizeDialog messages={messages} />}
+          {!isChannel && (
+            <Button variant="ghost" size="icon" onClick={handleBlockUser}>
+              <ShieldX className="h-4 w-4" />
+              <span className="sr-only">Block User</span>
+            </Button>
+          )}
         </div>
       </header>
 

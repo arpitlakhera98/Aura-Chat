@@ -103,12 +103,15 @@ export function AppSidebar() {
                   isActive={pathname === `/dm/${user.id}`}
                   tooltip={user.name}
                 >
-                  <Link href={`/dm/${user.id}`}>
-                    <Avatar className="h-5 w-5">
-                      <AvatarImage src={user.avatarUrl} alt={user.name} />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span>{user.name}</span>
+                  <Link href={`/dm/${user.id}`} className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <span>{user.name}</span>
+                    </div>
+                    {user.isActive && <div className="h-2 w-2 rounded-full bg-green-500" />}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -125,10 +128,10 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
            <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Profile">
+            <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Settings">
               <Link href="/profile">
                 <Settings />
-                <span>Profile</span>
+                <span>Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
