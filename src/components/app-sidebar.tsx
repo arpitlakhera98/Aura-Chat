@@ -24,7 +24,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
-import { channels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message } from '@/lib/data';
+import { channels, users, useCurrentUser, addUser, getUserNickname, useMessages, type User as UserType, type Message, getUnreadMessageCount } from '@/lib/data';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from './ui/dialog';
 import { Label } from './ui/label';
@@ -143,9 +143,10 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
     );
 }
 
-const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }) => {
-    const [activeFilter, setActiveFilter] = React.useState('All');
-    const filters = ['All', 'Unread', 'Direct', 'Groups'];
+type ChatFilter = 'All' | 'Unread' | 'Direct' | 'Groups';
+
+const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick }: { activeFilter: ChatFilter, onFilterChange: (filter: ChatFilter) => void, onAddContactClick: () => void }) => {
+    const filters: ChatFilter[] = ['All', 'Unread', 'Direct', 'Groups'];
 
     return (
         <SidebarHeader className="p-4 border-b border-border/20 space-y-4">
@@ -165,7 +166,7 @@ const ChatListHeader = ({ onAddContactClick }: { onAddContactClick: () => void }
                         key={filter}
                         variant={activeFilter === filter ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setActiveFilter(filter)}
+                        onClick={() => onFilterChange(filter)}
                         className={cn(
                             'rounded-full px-4 py-1 h-auto text-sm font-semibold border-border/30',
                             activeFilter === filter
@@ -197,6 +198,15 @@ const ChatList = () => {
     const currentUser = useCurrentUser();
     const allMessages = useMessages();
     const [isAddContactOpen, setIsAddContactOpen] = React.useState(false);
+    const [activeFilter, setActiveFilter] = React.useState<ChatFilter>('All');
+    
+    // This state will trigger re-renders when local storage changes for unread counts
+    const [_, setForceUpdate] = React.useState(0);
+    React.useEffect(() => {
+        const handleStorageChange = () => setForceUpdate(c => c + 1);
+        window.addEventListener('local-storage-changed', handleStorageChange);
+        return () => window.removeEventListener('local-storage-changed', handleStorageChange);
+    }, []);
 
     const sortedDMs = React.useMemo(() => {
         if (!currentUser) return [];
@@ -251,95 +261,137 @@ const ChatList = () => {
                 return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
             });
     }, [allMessages]);
+
+    const filteredDMs = React.useMemo(() => {
+        if (activeFilter === 'All' || activeFilter === 'Direct') return sortedDMs;
+        if (activeFilter === 'Groups') return [];
+        if (activeFilter === 'Unread') {
+            return sortedDMs.filter(({ user }) => {
+                if (!currentUser) return false;
+                const dmId = [currentUser.id, user.id].sort().join('-');
+                return getUnreadMessageCount(dmId, allMessages) > 0;
+            });
+        }
+        return sortedDMs;
+    }, [activeFilter, sortedDMs, allMessages, currentUser]);
+
+    const filteredChannels = React.useMemo(() => {
+        if (activeFilter === 'All' || activeFilter === 'Groups') return sortedChannels;
+        if (activeFilter === 'Direct') return [];
+        if (activeFilter === 'Unread') {
+            return sortedChannels.filter(({ channel }) => getUnreadMessageCount(channel.id, allMessages) > 0);
+        }
+        return sortedChannels;
+    }, [activeFilter, sortedChannels, allMessages]);
     
     return (
         <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20">
-            <ChatListHeader onAddContactClick={() => setIsAddContactOpen(true)} />
+            <ChatListHeader 
+                activeFilter={activeFilter}
+                onFilterChange={setActiveFilter}
+                onAddContactClick={() => setIsAddContactOpen(true)} 
+            />
             <SidebarContent className="p-2 space-y-4">
-                <Collapsible defaultOpen>
-                    <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
-                        <h2 className="text-sm font-bold tracking-wider text-primary">DIRECT MESSAGES</h2>
-                         <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <SidebarMenu className="pt-2">
-                            {sortedDMs.map(({ user, lastMessage }) => {
-                                const href = `/dm/${user.id}`;
-                                const isActive = pathname === href;
-                                const displayName = getUserNickname(user.id) || user.name;
-                                return (
-                                    <SidebarMenuItem key={`dm-${user.id}`}>
-                                        <Link href={href}>
-                                            <div className={cn(
-                                                "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
-                                                "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border border-white/10",
-                                                "shadow-lg",
-                                                isActive ? "border-t-primary/80" : "border-t-white/10 hover:bg-white/10"
-                                            )}>
-                                                 <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                                                <Avatar className="h-12 w-12 border-2 border-transparent">
-                                                    <AvatarImage src={user.avatarUrl} />
-                                                    <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <h3 className="font-semibold truncate text-base text-white">{displayName}</h3>
-                                                    <p className="text-sm text-muted-foreground truncate">
-                                                         {lastMessage ? lastMessage.content : 'No messages yet'}
-                                                    </p>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-1 text-xs">
-                                                     <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">3</Badge>
-                                                     <p className="text-muted-foreground">{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </SidebarMenuItem>
-                                )
-                            })}
-                        </SidebarMenu>
-                    </CollapsibleContent>
-                </Collapsible>
+                {activeFilter !== 'Groups' && (
+                    <Collapsible defaultOpen>
+                        <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                            <h2 className="text-sm font-bold tracking-wider text-primary">DIRECT MESSAGES</h2>
+                            <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <SidebarMenu className="pt-2">
+                                {filteredDMs.map(({ user, lastMessage }) => {
+                                    if (!currentUser) return null;
+                                    const href = `/dm/${user.id}`;
+                                    const isActive = pathname === href;
+                                    const displayName = getUserNickname(user.id) || user.name;
+                                    const dmId = [currentUser.id, user.id].sort().join('-');
+                                    const unreadCount = getUnreadMessageCount(dmId, allMessages);
 
-                 <Collapsible defaultOpen>
-                    <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
-                       <h2 className="text-sm font-bold tracking-wider text-primary">CHANNELS</h2>
-                       <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                        <SidebarMenu className="pt-2">
-                             {sortedChannels.map(({ channel, lastMessage }) => {
-                                const href = `/channel/${channel.id}`;
-                                const isActive = pathname === href;
-                                return (
-                                    <SidebarMenuItem key={`channel-${channel.id}`}>
-                                        <Link href={href}>
-                                            <div className={cn(
-                                                "flex items-center gap-4 p-3 rounded-lg transition-colors",
-                                                "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border",
-                                                 "shadow-lg",
-                                                isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
-                                            )}>
-                                                <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
-                                                    <p className="text-primary font-bold text-2xl">#</p>
+                                    return (
+                                        <SidebarMenuItem key={`dm-${user.id}`}>
+                                            <Link href={href}>
+                                                <div className={cn(
+                                                    "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
+                                                    "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border border-white/10",
+                                                    "shadow-lg",
+                                                    isActive ? "border-t-primary/80" : "border-t-white/10 hover:bg-white/10"
+                                                )}>
+                                                    <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                                                    <Avatar className="h-12 w-12 border-2 border-transparent">
+                                                        <AvatarImage src={user.avatarUrl} />
+                                                        <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <h3 className="font-semibold truncate text-base text-white">{displayName}</h3>
+                                                        <p className="text-sm text-muted-foreground truncate">
+                                                            {lastMessage ? lastMessage.content : 'No messages yet'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1 text-xs self-start pt-1">
+                                                        {unreadCount > 0 && (
+                                                            <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
+                                                        )}
+                                                        <p className={cn("text-muted-foreground", unreadCount > 0 && "mt-auto")}>{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1 overflow-hidden">
-                                                    <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
-                                                    <p className="text-sm text-muted-foreground truncate">
-                                                        {lastMessage ? lastMessage.content : `Welcome to #${channel.name}`}
-                                                    </p>
+                                            </Link>
+                                        </SidebarMenuItem>
+                                    )
+                                })}
+                            </SidebarMenu>
+                        </CollapsibleContent>
+                    </Collapsible>
+                )}
+
+                 {activeFilter !== 'Direct' && (
+                    <Collapsible defaultOpen>
+                        <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
+                        <h2 className="text-sm font-bold tracking-wider text-primary">CHANNELS</h2>
+                        <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <SidebarMenu className="pt-2">
+                                {filteredChannels.map(({ channel, lastMessage }) => {
+                                    const href = `/channel/${channel.id}`;
+                                    const isActive = pathname === href;
+                                    const unreadCount = getUnreadMessageCount(channel.id, allMessages);
+
+                                    return (
+                                        <SidebarMenuItem key={`channel-${channel.id}`}>
+                                            <Link href={href}>
+                                                <div className={cn(
+                                                    "flex items-center gap-4 p-3 rounded-lg transition-colors",
+                                                    "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border",
+                                                    "shadow-lg",
+                                                    isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
+                                                )}>
+                                                    <div className="h-12 w-12 flex items-center justify-center bg-primary/20 rounded-lg">
+                                                        <p className="text-primary font-bold text-2xl">#</p>
+                                                    </div>
+                                                    <div className="flex-1 overflow-hidden">
+                                                        <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
+                                                        <p className="text-sm text-muted-foreground truncate">
+                                                            {lastMessage ? lastMessage.content : `Welcome to #${channel.name}`}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1 text-xs self-start pt-1">
+                                                        {unreadCount > 0 ? (
+                                                            <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
+                                                        ) : (
+                                                            <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
+                                                        )}
+                                                        <p className={cn("text-muted-foreground", unreadCount > 0 && "mt-auto")}>{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-1 text-xs">
-                                                    <Badge variant="secondary" className="bg-primary/80 text-white border-0">Live</Badge>
-                                                    <p className="text-muted-foreground">{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </SidebarMenuItem>
-                                )
-                            })}
-                        </SidebarMenu>
-                     </CollapsibleContent>
-                </Collapsible>
+                                            </Link>
+                                        </SidebarMenuItem>
+                                    )
+                                })}
+                            </SidebarMenu>
+                        </CollapsibleContent>
+                    </Collapsible>
+                 )}
             </SidebarContent>
             <AddContactDialog open={isAddContactOpen} onOpenChange={setIsAddContactOpen} />
         </div>

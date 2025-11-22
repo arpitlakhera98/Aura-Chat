@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { users, useMessages, useCurrentUser, type User, type Message, clearMessagesForDM } from '@/lib/data';
+import { users, useMessages, useCurrentUser, type User, type Message, clearMessagesForDM, markChatAsRead } from '@/lib/data';
 import { ChatPageClient } from '@/components/chat-page-client';
 import { notFound } from 'next/navigation';
 
@@ -23,6 +23,7 @@ export default function DMPage({ params }: { params: { id:string } }) {
     if (currentUser && otherUser) {
       const currentDmId = [currentUser.id, otherUser.id].sort().join('-');
       setDmId(currentDmId);
+      markChatAsRead(currentDmId);
       setDmMessages(allMessages.filter((m) => m.dmId === currentDmId));
     }
   }, [currentUser, otherUser, allMessages]);
@@ -33,7 +34,7 @@ export default function DMPage({ params }: { params: { id:string } }) {
     }
   };
   
-  if (otherUser === undefined || !currentUser) {
+  if (!otherUser || !currentUser) {
     return <div>Loading...</div>;
   }
   
@@ -52,3 +53,5 @@ export default function DMPage({ params }: { params: { id:string } }) {
     />
   );
 }
+
+    

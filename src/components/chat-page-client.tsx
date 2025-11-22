@@ -3,10 +3,10 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname, blockUser, clearMessagesForDM } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan } from 'lucide-react';
+import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan, UserCog } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
@@ -272,18 +272,23 @@ export function ChatPageClient({
     ? otherUser.lastSeen === 'online'
       ? 'Online'
       : `Last seen ${formatLastSeen(otherUser.lastSeen)}`
-    : null;
+    : `${(chatTarget as Channel).name} members`;
+
+  const isAdmin = isChannel && (chatTarget as Channel).adminId === currentUser.id;
 
   return (
     <div className="flex h-screen flex-col bg-transparent relative">
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
             <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
                 {isChannel ? (
-                <div className="flex items-center gap-3 font-semibold">
+                <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 flex items-center justify-center bg-muted rounded-full">
                         <span className="text-primary font-bold text-xl">#</span>
                     </Avatar>
-                    <span className="text-lg">{displayName}</span>
+                    <div>
+                        <span className="text-lg font-semibold">{displayName}</span>
+                        <p className="text-xs text-muted-foreground">{status}</p>
+                    </div>
                 </div>
                 ) : (
                 <div className="flex items-center gap-4">
@@ -305,6 +310,11 @@ export function ChatPageClient({
                 </div>
                 )}
                  <div className="ml-auto flex items-center gap-2">
+                    {isAdmin && (
+                        <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 text-muted-foreground" onClick={() => handlePlaceholderAction('Manage group')}>
+                            <UserCog className="h-5 w-5" />
+                        </Button>
+                    )}
                     <SummarizeDialog messages={messages} />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -315,7 +325,7 @@ export function ChatPageClient({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
                             <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
-                                Chat theme
+                                Change theme
                             </DropdownMenuItem>
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             <DropdownMenuSeparator className="bg-white/10"/>
@@ -374,7 +384,7 @@ export function ChatPageClient({
                     !isSender && <div className="w-11" />
                 )}
                 <div className="flex flex-col items-start gap-1 w-full max-w-md md:max-w-lg">
-                    {!isSender && isFirstInGroup && (
+                    {!isSender && isChannel && isFirstInGroup && (
                         <p className="text-xs font-semibold text-primary ml-4">{message.user.name}</p>
                     )}
                     <div

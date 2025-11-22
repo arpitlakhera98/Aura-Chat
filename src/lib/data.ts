@@ -35,6 +35,7 @@ export type User = {
 export type Channel = {
   id:string;
   name: string;
+  adminId: string;
 };
 
 export type Message = {
@@ -117,9 +118,9 @@ export let users: User[] = [
 ];
 
 export const channels: Channel[] = [
-  { id: '1', name: 'general' },
-  { id: '2', name: 'design-team' },
-  { id: '3', name: 'random' },
+  { id: '1', name: 'general', adminId: '1' },
+  { id: '2', name: 'design-team', adminId: '1' },
+  { id: '3', name: 'random', adminId: '1' },
 ];
 
 let messages: Message[] = [
@@ -271,7 +272,7 @@ export function useMessages() {
 const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
 const NICKNAMES_KEY = 'aura-chat-nicknames';
 const BLOCKED_USERS_KEY_PREFIX = 'aura-chat-blocked-users-';
-
+const LAST_READ_KEY_PREFIX = 'aura-chat-last-read-';
 
 // --- Nickname Functions ---
 const getNicknames = (): Record<string, string> => {
@@ -444,3 +445,40 @@ export const isCurrentUserBlockedBy = (otherUserId: string): boolean => {
     if (!currentUserId) return false;
     return otherUserBlockedIds.includes(currentUserId);
 }
+
+// --- Unread Message Functions ---
+const getLastReadKey = () => {
+    const currentUserId = getCurrentUserId();
+    return `${LAST_READ_KEY_PREFIX}${currentUserId}`;
+}
+
+const getLastReadTimestamps = (): Record<string, string> => {
+    if (typeof window === 'undefined') return {};
+    const key = getLastReadKey();
+    const stored = window.localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : {};
+}
+
+export const markChatAsRead = (chatId: string) => {
+    if (typeof window === 'undefined') return;
+    const timestamps = getLastReadTimestamps();
+    timestamps[chatId] = new Date().toISOString();
+    const key = getLastReadKey();
+    window.localStorage.setItem(key, JSON.stringify(timestamps));
+    window.dispatchEvent(new CustomEvent('local-storage-changed')); // Notify sidebar
+}
+
+export const getUnreadMessageCount = (chatId: string, allMessages: Message[]): number => {
+    if (typeof window === 'undefined') return 0;
+    const lastReadTimestamp = getLastReadTimestamps()[chatId];
+    if (!lastReadTimestamp) {
+        // If never read, all messages are unread
+        return allMessages.filter(m => (m.channelId === chatId || m.dmId === chatId)).length;
+    }
+    return allMessages.filter(m => {
+        const isCorrectChat = m.channelId === chatId || m.dmId === chatId;
+        return isCorrectChat && new Date(m.timestamp) > new Date(lastReadTimestamp);
+    }).length;
+};
+
+    

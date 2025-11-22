@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { channels, useMessages, useCurrentUser, type Channel, type Message, clearMessagesForChannel } from '@/lib/data';
+import { channels, useMessages, useCurrentUser, type Channel, type Message, clearMessagesForChannel, markChatAsRead } from '@/lib/data';
 import { ChatPageClient } from '@/components/chat-page-client';
 import { useRouter } from 'next/navigation';
 
@@ -11,7 +11,7 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
   const currentUser = useCurrentUser();
   const allMessages = useMessages();
   const router = useRouter();
-  const channel = channels.find((c) => c.id === resolvedParams.id);
+  const [channel, setChannel] = React.useState<Channel | undefined>(undefined);
   const [channelMessages, setChannelMessages] = React.useState<Message[]>([]);
 
   React.useEffect(() => {
@@ -21,10 +21,15 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
   }, [currentUser, router]);
 
   React.useEffect(() => {
-    if (channel) {
-      setChannelMessages(allMessages.filter((m) => m.channelId === channel.id));
+    const foundChannel = channels.find((c) => c.id === resolvedParams.id);
+    setChannel(foundChannel);
+
+    if (foundChannel) {
+      markChatAsRead(foundChannel.id);
+      setChannelMessages(allMessages.filter((m) => m.channelId === foundChannel.id));
     }
-  }, [channel, allMessages]);
+  }, [resolvedParams.id, allMessages]);
+
 
   const handleClearChat = () => {
     if (channel) {
@@ -47,3 +52,5 @@ export default function ChannelPage({ params }: { params: { id: string } }) {
     />
   );
 }
+
+    
