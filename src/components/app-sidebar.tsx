@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,18 +30,27 @@ import {
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { channels, users, getCurrentUser, type User } from '@/lib/data';
+import { channels, users, useCurrentUser, setCurrentUserId, type User } from '@/lib/data';
 import { Logo } from './logo';
+import { useRouter } from 'next/navigation';
+
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const currentUser = getCurrentUser();
+  const currentUser = useCurrentUser();
   const otherUsers = users.filter((user) => user.id !== currentUser.id);
+  const router = useRouter();
 
   const [searchTerm, setSearchTerm] = React.useState('');
   const filteredUsers = otherUsers.filter((user) =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleLogout = () => {
+    // By setting to a non-existent ID, we default to the first user on next login
+    setCurrentUserId('-1'); 
+    router.push('/login');
+  }
 
   return (
     <>
@@ -123,11 +133,9 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Logout">
-              <Link href="/login">
+            <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
                 <LogOut />
                 <span>Logout</span>
-              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

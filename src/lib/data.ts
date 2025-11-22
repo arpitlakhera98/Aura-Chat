@@ -1,3 +1,8 @@
+
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export type User = {
   id: string;
   name: string;
@@ -182,7 +187,45 @@ export const messages: Message[] = [
   },
 ];
 
-export const getCurrentUser = () => users[0]; // Alex is the logged in user
+const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
+
+export const setCurrentUserId = (userId: string) => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(CURRENT_USER_ID_KEY, userId);
+  }
+};
+
+export const getCurrentUser = (): User => {
+  if (typeof window !== 'undefined') {
+    const storedId = window.localStorage.getItem(CURRENT_USER_ID_KEY);
+    const user = users.find((u) => u.id === storedId);
+    return user || users[0];
+  }
+  return users[0];
+};
+
+export const useCurrentUser = (): User => {
+  const [user, setUser] = useState(users[0]);
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+    
+    const handleStorageChange = () => {
+        setUser(getCurrentUser());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('local-storage-changed', handleStorageChange);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('local-storage-changed', handleStorageChange);
+    };
+  }, []);
+
+  return user;
+}
+
 
 export function addUser(user: Omit<User, 'id' | 'avatarUrl'>) {
     const newUser: User = {

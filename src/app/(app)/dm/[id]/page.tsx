@@ -1,19 +1,26 @@
-import { users, messages, getCurrentUser } from '@/lib/data';
-import { notFound } from 'next/navigation';
+
+'use client';
+
+import * as React from 'react';
+import { users, messages, useCurrentUser, type User, type Message } from '@/lib/data';
 import { ChatPageClient } from '@/components/chat-page-client';
 
 export default function DMPage({ params }: { params: { id: string } }) {
-  const currentUser = getCurrentUser();
+  const currentUser = useCurrentUser();
   const otherUser = users.find((u) => u.id === params.id);
+  const [dmMessages, setDmMessages] = React.useState<Message[]>([]);
 
-  if (!otherUser) {
-    notFound();
+  React.useEffect(() => {
+    if (currentUser && otherUser) {
+      const dmId = [currentUser.id, otherUser.id].sort().join('-');
+      setDmMessages(messages.filter((m) => m.dmId === dmId));
+    }
+  }, [currentUser, otherUser]);
+
+  if (!otherUser || !currentUser) {
+    // You might want a loading state here
+    return <div>Loading...</div>;
   }
-  
-  // DM IDs are stored as 'user1Id-user2Id' sorted numerically
-  const dmId = [currentUser.id, otherUser.id].sort().join('-');
-
-  const dmMessages = messages.filter((m) => m.dmId === dmId);
 
   return (
     <ChatPageClient

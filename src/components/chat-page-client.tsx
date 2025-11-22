@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -40,7 +41,7 @@ export function ChatPageClient({
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !currentUser) return;
 
     const message: Message = {
       id: `msg-${Date.now()}`,
@@ -60,6 +61,10 @@ export function ChatPageClient({
     setMessages((prev) => [...prev, message]);
     setNewMessage('');
   };
+  
+  if (!currentUser) {
+    return <div>Loading chat...</div>;
+  }
 
   return (
     <div className="flex h-screen flex-col">

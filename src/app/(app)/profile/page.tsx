@@ -1,7 +1,8 @@
+
 'use client';
 
 import * as React from 'react';
-import { getCurrentUser, type User } from '@/lib/data';
+import { useCurrentUser, type User } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,11 +26,18 @@ import Image from 'next/image';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = React.useState(false);
-  const [user, setUser] = React.useState<User>(getCurrentUser());
+  const currentUser = useCurrentUser();
+  const [user, setUser] = React.useState<User>(currentUser);
   const { toast } = useToast();
+  
+  React.useEffect(() => {
+    setUser(currentUser)
+  }, [currentUser])
 
   const handleSave = () => {
     setIsEditing(false);
+    // In a real app, you'd save this to a database
+    // For now, we just update the local state which is not persisted.
     toast({
       title: 'Profile Updated',
       description: 'Your profile information has been saved.',
@@ -44,6 +52,10 @@ export default function ProfilePage() {
   const handleGenderChange = (value: string) => {
     setUser((prev) => ({ ...prev, gender: value as User['gender'] }));
   };
+  
+  if (!user) {
+    return <div>Loading profile...</div>
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
