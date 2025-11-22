@@ -92,7 +92,7 @@ export default function SettingsPage() {
               </Avatar>
               <div className="flex-1">
                 <p className="text-xl font-semibold">{currentUser.name}</p>
-                <Badge variant="outline" className="mt-1 border-primary/50 text-primary">chase your dreams</Badge>
+                <p className="text-sm text-muted-foreground mt-1">{currentUser.bio || 'No bio yet.'}</p>
               </div>
             </div>
           </Link>
