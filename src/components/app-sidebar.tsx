@@ -128,8 +128,8 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
            <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Settings">
-              <Link href="/profile">
+            <SidebarMenuButton asChild isActive={pathname === '/settings'} tooltip="Settings">
+              <Link href="/settings">
                 <Settings />
                 <span>Settings</span>
               </Link>
@@ -143,14 +143,16 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
         <div className={cn("flex items-center gap-2 p-2 transition-opacity", "group-data-[collapsible=icon]:opacity-0")}>
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-                <span className="text-sm font-semibold">{currentUser.name}</span>
-                <span className="text-xs text-muted-foreground">{currentUser.email}</span>
-            </div>
+            <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                  <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                  <span className="text-sm font-semibold">{currentUser.name}</span>
+                  <span className="text-xs text-muted-foreground">{currentUser.email}</span>
+              </div>
+            </Link>
         </div>
       </SidebarFooter>
     </>

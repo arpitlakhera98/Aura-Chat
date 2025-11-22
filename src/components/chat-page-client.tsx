@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { SummarizeDialog } from './summarize-dialog';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -73,17 +74,20 @@ export function ChatPageClient({
   return (
     <div className="flex h-screen flex-col">
       <header className="flex h-14 items-center gap-4 border-b bg-card px-4">
-        <div className="flex items-center gap-2 font-semibold">
-          {isChannel ? (
+        {isChannel ? (
+          <div className="flex items-center gap-2 font-semibold">
             <Hash className="h-6 w-6 text-muted-foreground" />
-          ) : (
+            <span>{chatTarget.name}</span>
+          </div>
+        ) : (
+          <Link href={`/profile/${chatTarget.id}`} className="flex items-center gap-2 font-semibold hover:underline">
             <Avatar className="h-8 w-8 border">
               <AvatarImage src={(chatTarget as User).avatarUrl} />
               <AvatarFallback>{(chatTarget as User).name[0]}</AvatarFallback>
             </Avatar>
-          )}
-          <span>{chatTarget.name}</span>
-        </div>
+            <span>{chatTarget.name}</span>
+          </Link>
+        )}
         <div className="ml-auto flex items-center gap-2">
           {isChannel && <SummarizeDialog messages={messages} />}
           {!isChannel && (
@@ -108,12 +112,14 @@ export function ChatPageClient({
             )}
           >
             {message.user.id !== currentUser.id && (
-              <Avatar className="h-8 w-8">
-                <AvatarImage asChild src={message.user.avatarUrl}>
-                  <Image src={message.user.avatarUrl} alt={message.user.name} width={32} height={32} />
-                </AvatarImage>
-                <AvatarFallback>{message.user.name[0]}</AvatarFallback>
-              </Avatar>
+               <Link href={`/profile/${message.user.id}`}>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage asChild src={message.user.avatarUrl}>
+                    <Image src={message.user.avatarUrl} alt={message.user.name} width={32} height={32} />
+                  </AvatarImage>
+                  <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                </Avatar>
+              </Link>
             )}
             <div
               className={cn(
@@ -128,6 +134,16 @@ export function ChatPageClient({
               )}
               <p>{message.content}</p>
             </div>
+             {message.user.id === currentUser.id && (
+               <Link href={`/profile/${message.user.id}`}>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage asChild src={message.user.avatarUrl}>
+                    <Image src={message.user.avatarUrl} alt={message.user.name} width={32} height={32} />
+                  </AvatarImage>
+                  <AvatarFallback>{message.user.name[0]}</AvatarFallback>
+                </Avatar>
+              </Link>
+            )}
           </div>
         ))}
       </main>

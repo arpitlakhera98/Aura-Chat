@@ -29,6 +29,7 @@ export type User = {
   gender: 'Male' | 'Female' | 'Other' | 'Prefer not to say';
   email: string;
   isActive: boolean;
+  bio: string;
 };
 
 export type Channel = {
@@ -54,6 +55,7 @@ export let users: User[] = [
     gender: 'Male',
     email: 'alex@example.com',
     isActive: true,
+    bio: 'Software engineer and coffee enthusiast.',
   },
   {
     id: '2',
@@ -63,6 +65,7 @@ export let users: User[] = [
     gender: 'Female',
     email: 'maya@example.com',
     isActive: true,
+    bio: 'Designer, painter, and dog lover.',
   },
   {
     id: '3',
@@ -72,6 +75,7 @@ export let users: User[] = [
     gender: 'Male',
     email: 'leo@example.com',
     isActive: false,
+    bio: 'Musician and part-time philosopher.',
   },
   {
     id: '4',
@@ -81,6 +85,7 @@ export let users: User[] = [
     gender: 'Female',
     email: 'chloe@example.com',
     isActive: true,
+    bio: 'Marketing guru and travel addict.',
   },
   {
     id: '5',
@@ -90,6 +95,7 @@ export let users: User[] = [
     gender: 'Male',
     email: 'ben@example.com',
     isActive: false,
+    bio: 'Product manager, always learning.',
   },
   {
     id: '6',
@@ -99,6 +105,7 @@ export let users: User[] = [
     gender: 'Male',
     email: 'ravi@example.com',
     isActive: true,
+    bio: 'Building the future, one line of code at a time.',
   },
 ];
 
@@ -276,13 +283,18 @@ export const useCurrentUser = (): User => {
 }
 
 
-export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive'>) {
+export function addUser(user: Omit<User, 'id' | 'avatarUrl' | 'isActive' | 'bio'>) {
     const newUser: User = {
         ...user,
         id: String(users.length + 1),
         avatarUrl: `https://picsum.photos/seed/${users.length + 1}/40/40`,
         isActive: true,
+        bio: 'New to Aura Chat!',
     }
     users.push(newUser);
     return newUser;
+}
+
+export const getUserById = (id: string) => {
+    return users.find(u => u.id === id);
 }
