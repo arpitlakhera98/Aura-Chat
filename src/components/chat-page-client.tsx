@@ -8,13 +8,20 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Card } from './ui/card';
 import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
-import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, Search } from 'lucide-react';
+import { SendHorizonal, Hash, ShieldX, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical } from 'lucide-react';
 import { cn, formatLastSeen } from '@/lib/utils';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 interface ChatPageClientProps {
   currentUser: User;
@@ -169,6 +176,13 @@ export function ChatPageClient({
     }
   };
 
+    const handlePlaceholderAction = (action: string) => {
+        toast({
+            title: 'Feature Not Implemented',
+            description: `The "${action}" feature is not yet supported.`,
+        });
+    };
+
   const handleRemoveImage = () => {
     setImagePreview(null);
     if (imageInputRef.current) {
@@ -217,16 +231,32 @@ export function ChatPageClient({
           </Link>
         )}
         <div className="ml-auto flex items-center gap-2">
-           <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5 text-muted-foreground" />
-              <span className="sr-only">Search</span>
-            </Button>
-          {!isChannel && (
-            <Button variant="ghost" size="icon" onClick={handleBlockUser}>
-              <ShieldX className="h-5 w-5 text-muted-foreground" />
-              <span className="sr-only">Block User</span>
-            </Button>
-          )}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                        <span className="sr-only">More options</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Chat theme')}>
+                        Chat theme
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Share user')}>
+                        Share user
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Remove user')}>
+                        Remove user
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handlePlaceholderAction('Clear chat')}>
+                        Clear chat
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleBlockUser} className="text-destructive">
+                        Block chat
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </header>
 
