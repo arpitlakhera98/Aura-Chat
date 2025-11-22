@@ -40,9 +40,9 @@ const SettingsListItem = ({
   isPlaceholder?: boolean;
 }) => (
   <Link href={isPlaceholder ? '#' : href}>
-    <div className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer">
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
-        <Icon className="h-5 w-5 text-muted-foreground" />
+    <div className="flex items-center gap-4 px-4 py-3 bg-white/5 border-t border-white/10 hover:bg-white/10 transition-colors cursor-pointer rounded-lg shadow-lg">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
+        <Icon className="h-5 w-5 text-primary" />
       </div>
       <div className="flex-1">
         <p className="font-medium">{title}</p>
@@ -61,20 +61,22 @@ export default function SettingsPage() {
   if (!currentUser) return null;
 
   return (
-    <div className="flex h-full flex-col bg-card text-card-foreground">
+    <div className="flex h-full flex-col text-card-foreground p-4">
       <header className="p-4 space-y-4">
         <h1 className="text-3xl font-bold">Settings</h1>
-        <div className="relative">
+         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input placeholder="Search" className="pl-10" />
+          <Input 
+            placeholder="Search Settings" 
+            className="pl-10 bg-black/30 border-white/10 rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]" 
+          />
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="space-y-6">
-          <div className="px-4">
-             <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-4 p-4 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer -m-4">
-              <Avatar className="h-16 w-16 border">
+      <main className="flex-1 overflow-y-auto space-y-6">
+        <div className="px-4">
+             <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-white/10 shadow-lg hover:bg-black/40 transition-colors cursor-pointer -m-4">
+              <Avatar className="h-16 w-16 border-2 border-primary">
                 <AvatarImage asChild src={currentUser.avatarUrl}>
                   <Image
                     src={currentUser.avatarUrl}
@@ -87,39 +89,24 @@ export default function SettingsPage() {
               </Avatar>
               <div className="flex-1">
                 <p className="text-xl font-semibold">{currentUser.name}</p>
-                <Badge variant="outline" className="mt-1">chase your dreams</Badge>
+                <Badge variant="outline" className="mt-1 border-primary/50 text-primary">chase your dreams</Badge>
               </div>
               <QrCode className="h-7 w-7 text-muted-foreground" />
             </Link>
           </div>
-
-          <Link href="/settings/avatar" className="block px-4">
-            <div className="flex items-center gap-4 py-3 hover:bg-muted/50 transition-colors cursor-pointer rounded-lg">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg">
-                    <UserIcon className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                    <p className="font-medium text-primary">Avatar</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-            </div>
-          </Link>
-
-          <Separator />
           
-          <div className="space-y-1">
-            <SettingsListItem icon={List} title="Lists" isPlaceholder />
-            <SettingsListItem icon={Megaphone} title="Broadcast messages" isPlaceholder />
-            <SettingsListItem icon={Star} title="Starred" isPlaceholder />
-            <SettingsListItem icon={Link2} title="Linked devices" isPlaceholder />
+          <div className="space-y-3 px-4">
+            <SettingsListItem icon={Star} title="Starred Messages" isPlaceholder />
+            <SettingsListItem icon={Link2} title="Linked Devices" isPlaceholder />
+            <SettingsListItem icon={Megaphone} title="Broadcast Lists" isPlaceholder />
           </div>
 
-          <Separator />
+          <Separator className="bg-white/10" />
 
-          <div className="space-y-1">
+          <div className="space-y-3 px-4">
             <SettingsListItem icon={UserIcon} title="Account" subtitle="Security notifications, change number" href="/settings/profile" />
             <SettingsListItem icon={Lock} title="Privacy" subtitle="Block contacts, disappearing messages" href="/settings/privacy" />
-            <SettingsListItem icon={MessageSquare} title="Chats" subtitle="Theme, wallpapers, chat history" href="/settings/appearance" />
+            <SettingsListItem icon={Palette} title="Appearance" subtitle="Theme, wallpapers, chat history" href="/settings/appearance" />
             <SettingsListItem icon={Bell} title="Notifications" subtitle="Message, group & call tones" isPlaceholder />
             <SettingsListItem icon={Slash} title="Blocked Users" subtitle="Manage blocked users" href="/settings/blocked" />
           </div>

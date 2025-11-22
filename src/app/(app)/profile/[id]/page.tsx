@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -14,7 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { formatLastSeen } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -49,51 +48,59 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <Card className="overflow-hidden">
-        <CardHeader className="relative p-0">
-            <div className="w-full h-24 bg-muted" />
-            <div className="absolute top-12 left-6">
-                <Avatar className="h-24 w-24 border-4 border-card">
-                <AvatarImage asChild src={user.avatarUrl}>
-                    <Image src={user.avatarUrl} alt={user.name} width={96} height={96} />
-                </AvatarImage>
-                <AvatarFallback>{user.name[0]}</AvatarFallback>
+      <Card className="overflow-hidden bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+        <CardHeader className="relative p-0 h-48 flex items-center justify-center">
+            <Image 
+              src="https://picsum.photos/seed/header-bg/1200/200" 
+              alt="Profile banner"
+              fill
+              className="object-cover opacity-30"
+            />
+            <div className="absolute -bottom-16">
+                <Avatar className="h-32 w-32 border-4 border-primary/50 shadow-2xl shadow-primary/20">
+                  <AvatarImage asChild src={user.avatarUrl}>
+                      <Image src={user.avatarUrl} alt={user.name} width={128} height={128} />
+                  </AvatarImage>
+                  <AvatarFallback className="text-4xl">{user.name[0]}</AvatarFallback>
                 </Avatar>
             </div>
-             {isCurrentUser && (
-                <div className="absolute top-20 right-4">
-                  <Button asChild variant="outline">
-                    <Link href="/settings">Edit Profile</Link>
-                  </Button>
-                </div>
-              )}
         </CardHeader>
-        <CardContent className="space-y-6 pt-16">
+        <CardContent className="space-y-6 pt-24 text-center">
             <div className="space-y-1">
-                <h2 className="text-2xl font-bold">{user.name}</h2>
+                <h2 className="text-3xl font-bold">{user.name}</h2>
                 <p className="text-muted-foreground">{user.email}</p>
-                <p className="text-sm text-muted-foreground pt-1">{status}</p>
+                <p className="text-sm text-primary pt-1">{status}</p>
             </div>
           
-            <Separator />
+            {isCurrentUser ? (
+              <Button asChild className="transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))] hover:scale-105">
+                <Link href="/settings">Edit Profile</Link>
+              </Button>
+            ) : (
+                 <Button className="transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))] hover:scale-105">
+                    Send Message
+                </Button>
+            )}
 
-            <div className="space-y-4">
-                <h3 className="text-sm font-medium text-muted-foreground">About</h3>
+            <Separator className="bg-white/10" />
+
+            <div className="space-y-2 text-left">
+                <h3 className="text-sm font-semibold text-muted-foreground">ABOUT</h3>
                 <p className="text-base">{user.bio || "No bio yet."}</p>
             </div>
 
-            <Separator />
+            <Separator className="bg-white/10" />
 
-            <div className="space-y-4">
-                 <h3 className="text-sm font-medium text-muted-foreground">Details</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                    <p className="text-sm font-medium">Age</p>
-                    <p className="text-muted-foreground">{user.age}</p>
+            <div className="space-y-4 text-left">
+                 <h3 className="text-sm font-semibold text-muted-foreground">DETAILS</h3>
+                <div className="grid gap-4 md:grid-cols-2 text-sm">
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                      <p className="font-medium">Age</p>
+                      <p className="text-muted-foreground">{user.age}</p>
                     </div>
-                    <div>
-                    <p className="text-sm font-medium">Gender</p>
-                    <p className="text-muted-foreground">{user.gender}</p>
+                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                      <p className="font-medium">Gender</p>
+                      <p className="text-muted-foreground">{user.gender}</p>
                     </div>
                 </div>
             </div>
