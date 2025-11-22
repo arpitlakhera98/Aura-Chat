@@ -270,6 +270,8 @@ export function useMessages() {
 
 const CURRENT_USER_ID_KEY = 'aura-chat-current-user-id';
 const NICKNAMES_KEY = 'aura-chat-nicknames';
+const BLOCKED_USERS_KEY_PREFIX = 'aura-chat-blocked-users-';
+
 
 // --- Nickname Functions ---
 const getNicknames = (): Record<string, string> => {
@@ -303,9 +305,16 @@ export const setCurrentUserId = (userId: string) => {
   }
 };
 
+export const getCurrentUserId = (): string => {
+    if (typeof window !== 'undefined') {
+        return window.localStorage.getItem(CURRENT_USER_ID_KEY) || '1';
+    }
+    return '1';
+}
+
 export const getCurrentUser = (): User => {
   if (typeof window !== 'undefined') {
-    const storedId = window.localStorage.getItem(CURRENT_USER_ID_KEY);
+    const storedId = getCurrentUserId();
     const user = users.find((u) => u.id === storedId);
     return user || users[0];
   }
@@ -370,4 +379,50 @@ export function updateUser(userId: string, updatedData: Partial<User>) {
 
 export const getUserById = (id: string) => {
     return users.find(u => u.id === id);
+}
+
+// --- Block Functions ---
+const getBlockedUsersKey = () => {
+    const currentUserId = getCurrentUserId();
+    return `${BLOCKED_USERS_KEY_PREFIX}${currentUserId}`;
+}
+
+export const getBlockedUserIds = (): string[] => {
+    if (typeof window === 'undefined') return [];
+    const key = getBlockedUsersKey();
+    const stored = window.localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : [];
+};
+
+export const isUserBlocked = (userId: string): boolean => {
+    return getBlockedUserIds().includes(userId);
+};
+
+export const blockUser = (userId: string) => {
+    if (typeof window === 'undefined') return;
+    const blockedIds = getBlockedUserIds();
+    if (!blockedIds.includes(userId)) {
+        const newBlockedIds = [...blockedIds, userId];
+        const key = getBlockedUsersKey();
+        window.localStorage.setItem(key, JSON.stringify(newBlockedIds));
+        window.dispatchEvent(new CustomEvent('local-storage-changed'));
+    }
+};
+
+export const unblockUser = (userId: string) => {
+    if (typeof window === 'undefined') return;
+    const blockedIds = getBlockedUserIds();
+    const newBlockedIds = blockedIds.filter(id => id !== userId);
+    const key = getBlockedUsersKey();
+    window.localStorage.setItem(key, JSON.stringify(newBlockedIds));
+    window.dispatchEvent(new CustomEvent('local-storage-changed'));
+};
+
+// Check if the current user is blocked by another user
+export const isCurrentUserBlockedBy = (otherUserId: string): boolean => {
+    if (typeof window === 'undefined') return false;
+    const otherUserBlockedKey = `${BLOCKED_USERS_KEY_PREFIX}${otherUserId}`;
+    const otherUserBlockedIds = JSON.parse(window.localStorage.getItem(otherUserBlockedKey) || '[]');
+    const currentUserId = getCurrentUserId();
+    return otherUserBlockedIds.includes(currentUserId);
 }

@@ -8,6 +8,7 @@ import {
   type User,
   getUserNickname,
   setUserNickname,
+  isCurrentUserBlockedBy,
 } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatLastSeen } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Edit2 } from 'lucide-react';
+import { Edit2, ShieldBan } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +32,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,6 +45,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   const [displayName, setDisplayName] = React.useState('');
   const [nicknameInput, setNicknameInput] = React.useState('');
   const [isNicknameDialogOpen, setIsNicknameDialogOpen] = React.useState(false);
+  const [isBlocked, setIsBlocked] = React.useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -55,6 +56,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
       setUser(foundUser);
       const isMe = currentUser?.id === foundUser.id;
       setIsCurrentUser(isMe);
+
       if (isMe) {
         setDisplayName(foundUser.name);
       } else {
@@ -62,6 +64,12 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         setDisplayName(nickname || foundUser.name);
         setNicknameInput(nickname || '');
       }
+
+      // Check if the current user is blocked by the profile owner
+      if (currentUser?.id) {
+          setIsBlocked(isCurrentUserBlockedBy(foundUser.id));
+      }
+
     } else if (resolvedParams.id) {
       notFound();
     }
@@ -84,6 +92,24 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
         setNicknameInput(nickname || '');
         setIsNicknameDialogOpen(true);
     }
+  }
+
+  if (isBlocked) {
+    return (
+        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+            <Card className="overflow-hidden bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow text-center">
+                <CardHeader>
+                    <ShieldBan className="mx-auto h-16 w-16 text-destructive" />
+                </CardHeader>
+                <CardContent>
+                    <h2 className="text-2xl font-bold">You are Blocked</h2>
+                    <p className="text-muted-foreground mt-2">
+                        You cannot view this profile because the user has blocked you.
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+    )
   }
 
   if (!user || !currentUser) {

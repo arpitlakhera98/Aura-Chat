@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { Message, User, Channel } from '@/lib/data';
-import { addMessage, getUserNickname, setUserNickname } from '@/lib/data';
+import { addMessage, getUserNickname, setUserNickname, blockUser, clearMessagesForDM } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { SendHorizonal, Paperclip, X, Image as ImageIcon, Camera, FileText, MapPin, Contact, Mic, Smile, MoreVertical, Edit2, Sparkles, Trash2, ShieldBan } from 'lucide-react';
@@ -155,10 +155,12 @@ export function ChatPageClient({
   }
 
   const confirmBlockUser = () => {
+    if (isChannel) return;
+    blockUser(chatTarget.id);
     toast({
       variant: 'destructive',
-      title: 'User Blocked (Not Implemented)',
-      description: `You have blocked ${(chatTarget as User).name}. This is a placeholder action.`,
+      title: 'User Blocked',
+      description: `You have blocked ${displayName}. They will no longer be able to message you or see your profile.`,
     });
     setIsBlockUserDialogOpen(false);
   };

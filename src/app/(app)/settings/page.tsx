@@ -11,6 +11,7 @@ import {
   User as UserIcon,
   Palette,
   LogOut,
+  ShieldBan,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -105,6 +106,12 @@ export default function SettingsPage() {
                 icon={Palette} 
                 title="Appearance" 
                 subtitle="Customize the look and feel" 
+            />
+             <SettingsListItem
+              icon={ShieldBan}
+              title="Blocked Users"
+              subtitle="Manage who you've blocked"
+              href="/settings/blocked"
             />
           </div>
         
