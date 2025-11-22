@@ -75,7 +75,7 @@ export default function SettingsPage() {
 
       <main className="flex-1 overflow-y-auto space-y-6">
         <div className="px-4">
-             <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-white/10 shadow-lg hover:bg-black/40 transition-colors cursor-pointer -m-4">
+             <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-white/10 shadow-lg hover:bg-black/40 transition-colors cursor-pointer">
               <Avatar className="h-16 w-16 border-2 border-primary">
                 <AvatarImage asChild src={currentUser.avatarUrl}>
                   <Image
@@ -111,8 +111,7 @@ export default function SettingsPage() {
             <SettingsListItem icon={Slash} title="Blocked Users" subtitle="Manage blocked users" href="/settings/blocked" />
           </div>
 
-        </div>
-      </main>
+        </main>
     </div>
   );
 }
