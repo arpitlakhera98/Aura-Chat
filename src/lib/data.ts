@@ -183,3 +183,13 @@ export const messages: Message[] = [
 ];
 
 export const getCurrentUser = () => users[0]; // Alex is the logged in user
+
+export function addUser(user: Omit<User, 'id' | 'avatarUrl'>) {
+    const newUser: User = {
+        ...user,
+        id: String(users.length + 1),
+        avatarUrl: `https://picsum.photos/seed/${users.length + 1}/40/40`,
+    }
+    users.push(newUser);
+    return newUser;
+}

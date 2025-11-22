@@ -19,10 +19,16 @@ interface ChatPageClientProps {
 
 export function ChatPageClient({
   currentUser,
-  messages,
+  messages: initialMessages,
   chatTarget,
 }: ChatPageClientProps) {
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = React.useState(initialMessages);
+  const [newMessage, setNewMessage] = React.useState('');
+
+  React.useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -31,6 +37,29 @@ export function ChatPageClient({
   }, [messages]);
   
   const isChannel = 'name' in chatTarget;
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim() === '') return;
+
+    const message: Message = {
+      id: `msg-${Date.now()}`,
+      content: newMessage,
+      timestamp: new Date().toISOString(),
+      user: currentUser,
+    };
+    
+    if (isChannel) {
+        message.channelId = chatTarget.id;
+    } else {
+        message.dmId = [currentUser.id, (chatTarget as User).id].sort().join('-');
+    }
+
+    // In a real app, you'd send this to a server.
+    // For now, we'll just update the local state.
+    setMessages((prev) => [...prev, message]);
+    setNewMessage('');
+  };
 
   return (
     <div className="flex h-screen flex-col">
@@ -89,23 +118,33 @@ export function ChatPageClient({
       </main>
 
       <footer className="border-t p-4 bg-card">
-        <Card>
-          <div className="relative">
-            <Textarea
-              placeholder="Type your message..."
-              className="resize-none pr-20"
-              rows={1}
-            />
-            <Button
-              type="submit"
-              size="icon"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2"
-            >
-              <SendHorizonal className="h-4 w-4" />
-              <span className="sr-only">Send</span>
-            </Button>
-          </div>
-        </Card>
+        <form onSubmit={handleSendMessage}>
+          <Card>
+            <div className="relative">
+              <Textarea
+                placeholder="Type your message..."
+                className="resize-none pr-20"
+                rows={1}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage(e);
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2"
+              >
+                <SendHorizonal className="h-4 w-4" />
+                <span className="sr-only">Send</span>
+              </Button>
+            </div>
+          </Card>
+        </form>
       </footer>
     </div>
   );
