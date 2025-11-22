@@ -246,12 +246,14 @@ export function ChatPageClient({
   }
 
   const openNicknameDialog = () => {
+    if (isChannel) return;
     const nickname = getUserNickname(chatTarget.id);
     setNicknameInput(nickname || '');
     setIsNicknameDialogOpen(true);
   }
 
   const handleNicknameSave = () => {
+    if (isChannel) return;
     setUserNickname(chatTarget.id, nicknameInput);
     updateDisplayName(); // Directly call the update function
     setIsNicknameDialogOpen(false);
@@ -261,8 +263,8 @@ export function ChatPageClient({
     });
   };
   
-  if (!currentUser) {
-    return <div>Loading chat...</div>;
+  if (!currentUser || !chatTarget) {
+    return <div className="flex h-full items-center justify-center"><p>Loading chat...</p></div>;
   }
 
   const otherUser = isChannel ? null : (chatTarget as User);
@@ -581,3 +583,5 @@ export function ChatPageClient({
     </div>
   );
 }
+
+    
