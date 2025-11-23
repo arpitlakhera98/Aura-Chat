@@ -97,7 +97,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   if (isBlocked) {
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <Card className="overflow-hidden bg-card/60 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow text-center">
+            <Card className="overflow-hidden text-center">
                 <CardHeader>
                     <ShieldBan className="mx-auto h-16 w-16 text-destructive" />
                 </CardHeader>
@@ -131,16 +131,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <Card className="overflow-hidden bg-card/60 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+      <Card className="overflow-hidden">
         <CardHeader className="relative p-0 h-48 flex items-center justify-center">
           <Image
             src="https://picsum.photos/seed/header-bg/1200/200"
             alt="Profile banner"
             fill
-            className="object-cover opacity-30"
+            className="object-cover"
           />
           <div className="absolute -bottom-16">
-            <Avatar className="h-32 w-32 border-4 border-primary/50 shadow-2xl shadow-primary/20">
+            <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
               <AvatarImage asChild src={user.avatarUrl}>
                 <Image
                   src={user.avatarUrl}
@@ -165,7 +165,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 <Edit2 className="h-4 w-4" />
                             </Button>
                              <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
-                                <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+                                <AlertDialogContent>
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
                                     <AlertDialogDescription>
@@ -179,7 +179,6 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                             value={nicknameInput}
                                             onChange={(e) => setNicknameInput(e.target.value)}
                                             placeholder="Enter nickname"
-                                            className="bg-input/80 border-white/20"
                                         />
                                     </div>
                                     <AlertDialogFooter>
@@ -201,17 +200,16 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
           {isCurrentUser ? (
             <Button
               asChild
-              className="transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))] hover:scale-105"
             >
               <Link href="/settings/profile">Edit Profile</Link>
             </Button>
           ) : (
-            <Button onClick={handleSendMessage} className="transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))] hover:scale-105">
+            <Button onClick={handleSendMessage}>
               Send Message
             </Button>
           )}
 
-          <Separator className="bg-white/10" />
+          <Separator />
 
           <div className="space-y-2 text-left">
             <h3 className="text-sm font-semibold text-muted-foreground">
@@ -222,17 +220,17 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
             
           {isCurrentUser && (
             <>
-                <Separator className="bg-white/10" />
+                <Separator />
                 <div className="space-y-4 text-left">
                     <h3 className="text-sm font-semibold text-muted-foreground">
                     DETAILS
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                         <p className="font-medium">Age</p>
                         <p className="text-muted-foreground">{user.age}</p>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                    <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
                         <p className="font-medium">Gender</p>
                         <p className="text-muted-foreground">{user.gender}</p>
                     </div>

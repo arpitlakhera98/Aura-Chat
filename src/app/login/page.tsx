@@ -50,8 +50,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-transparent p-4">
-      <Card className="w-full max-w-md animate-aurora-glow border-primary/20 shadow-2xl bg-card/60 backdrop-blur-md">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <Logo />
@@ -72,7 +72,6 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
               />
             </div>
             <div className="space-y-2">
@@ -82,19 +81,18 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
               />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full transition-all duration-300 hover:shadow-[0_0_20px_hsl(var(--primary))] hover:scale-105" type="submit">
+            <Button className="w-full" type="submit">
               Log in
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-medium text-primary underline-offset-4 hover:underline hover:text-primary/80"
+                className="font-medium text-primary underline-offset-4 hover:underline"
               >
                 Sign up
               </Link>

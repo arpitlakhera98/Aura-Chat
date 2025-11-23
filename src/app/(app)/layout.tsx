@@ -20,7 +20,7 @@ const AppSidebar = dynamic(() => import('@/components/app-sidebar').then(mod => 
                     <Skeleton className="h-12 w-12 rounded-lg" />
                 </div>
             </div>
-            <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20 p-4 space-y-4">
+            <div className="w-96 flex flex-col h-full bg-background border-r p-4 space-y-4">
                  <Skeleton className="h-10 w-full" />
                  <Skeleton className="h-10 w-full" />
                  <div className="space-y-2 pt-4">

@@ -87,7 +87,7 @@ function AddMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add Members to #{channel.name}</DialogTitle>
           <DialogDescription>
@@ -101,7 +101,7 @@ function AddMemberDialog({
               potentialMembers.map(user => (
               <div
                 key={user.id}
-                className="flex items-center gap-4 p-2 rounded-lg hover:bg-white/10 cursor-pointer"
+                className="flex items-center gap-4 p-2 rounded-lg hover:bg-accent cursor-pointer"
                 onClick={() => handleSelectUser(user.id)}
               >
                 <Checkbox
@@ -195,7 +195,7 @@ function EditChannelDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Edit Channel</DialogTitle>
           <DialogDescription>
@@ -226,7 +226,6 @@ function EditChannelDialog({
                     id="channel-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="bg-input/80 border-white/20"
                 />
             </div>
         </div>
@@ -322,7 +321,7 @@ const ChannelMembersPopover = ({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-background/60 backdrop-blur-md border-primary/30 text-white">
+        <PopoverContent className="w-80">
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Members</h4>
@@ -335,7 +334,7 @@ const ChannelMembersPopover = ({
                 {members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-white/10 group"
+                    className="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-accent group"
                   >
                     <Link
                       href={`/profile/${member.id}`}
@@ -359,20 +358,20 @@ const ChannelMembersPopover = ({
                                 <MoreVertical className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
+                        <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => router.push(`/profile/${member.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Profile
                             </DropdownMenuItem>
                             {isAdmin && member.id !== channel.adminId && (
                                 <DropdownMenuItem onClick={() => handleRemoveClick(member)}>
-                                    <UserX className="mr-2 h-4 w-4 text-red-400" />
-                                    <span className="text-red-400">Remove from Channel</span>
+                                    <UserX className="mr-2 h-4 w-4 text-red-500" />
+                                    <span className="text-red-500">Remove from Channel</span>
                                 </DropdownMenuItem>
                             )}
                              <DropdownMenuItem onClick={() => handleBlockClick(member)}>
-                                <ShieldBan className="mr-2 h-4 w-4 text-red-400" />
-                                <span className="text-red-400">Block User</span>
+                                <ShieldBan className="mr-2 h-4 w-4 text-red-500" />
+                                <span className="text-red-500">Block User</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -387,7 +386,7 @@ const ChannelMembersPopover = ({
       
       {/* Remove User Dialog */}
       <AlertDialog open={!!userToRemove} onOpenChange={(open) => !open && setUserToRemove(null)}>
-        <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {userToRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -403,7 +402,7 @@ const ChannelMembersPopover = ({
 
       {/* Block User Dialog */}
       <AlertDialog open={!!userToBlock} onOpenChange={(open) => !open && setUserToBlock(null)}>
-        <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Block {userToBlock?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -684,7 +683,7 @@ export function ChatPageClient({
         {channel && <AddMemberDialog channel={channel} open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen} />}
         {channel && isAdmin && <EditChannelDialog channel={channel} open={isEditChannelOpen} onOpenChange={setIsEditChannelOpen} />}
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
-            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-card/60 backdrop-blur-md border border-primary/30 shadow-lg animate-aurora-glow">
+            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-card shadow-lg">
                 {channel ? (
                     <ChannelMembersPopover channel={channel} currentUser={currentUser} />
                 ) : (
@@ -715,7 +714,7 @@ export function ChatPageClient({
                                 <span className="sr-only">More options</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
+                        <DropdownMenuContent align="end">
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             {channel && isAdmin && (
                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
@@ -729,20 +728,20 @@ export function ChatPageClient({
                                     Edit channel
                                 </DropdownMenuItem>
                             )}
-                            {isAdmin && <DropdownMenuSeparator className="bg-white/10"/>}
+                            {isAdmin && <DropdownMenuSeparator />}
                             <DropdownMenuItem onClick={() => setIsClearChatDialogOpen(true)} className="flex items-center gap-2">
                                 <Trash2 className="h-4 w-4" />
                                 Clear chat
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-white/10"/>
+                            <DropdownMenuSeparator />
                              {!isChannel && (
-                                <DropdownMenuItem onClick={() => setIsBlockUserDialogOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
+                                <DropdownMenuItem onClick={() => setIsBlockUserDialogOpen(true)} className="text-red-500 focus:bg-red-500/10 focus:text-red-500 flex items-center gap-2">
                                     <ShieldBan className="h-4 w-4" />
                                     Block user
                                 </DropdownMenuItem>
                             )}
                             {channel && (
-                                <DropdownMenuItem onClick={() => setIsLeaveChannelOpen(true)} className="text-red-400 focus:bg-red-500/20 focus:text-red-300 flex items-center gap-2">
+                                <DropdownMenuItem onClick={() => setIsLeaveChannelOpen(true)} className="text-red-500 focus:bg-red-500/10 focus:text-red-500 flex items-center gap-2">
                                     <LogOut className="h-4 w-4" />
                                     Leave channel
                                 </DropdownMenuItem>
@@ -799,7 +798,7 @@ export function ChatPageClient({
                         'group relative rounded-2xl px-4 py-2.5 text-base',
                         isSender
                             ? 'bg-primary text-primary-foreground self-end'
-                            : 'bg-muted/60 text-foreground animate-aurora-glow border border-white/10 backdrop-blur-sm',
+                            : 'bg-muted text-foreground',
                         isFirstInGroup && (isSender ? 'rounded-tr-none' : 'rounded-tl-none'),
                         isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
                         {'p-1.5': !!message.imageUrl}
@@ -825,7 +824,7 @@ export function ChatPageClient({
         )}
       </main>
       <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
-          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+          <AlertDialogContent>
               <AlertDialogHeader>
               <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
               <AlertDialogDescription>
@@ -839,7 +838,6 @@ export function ChatPageClient({
                       value={nicknameInput}
                       onChange={(e) => setNicknameInput(e.target.value)}
                       placeholder="Enter nickname"
-                      className="bg-input/80 border-white/20"
                   />
               </div>
               <AlertDialogFooter>
@@ -850,7 +848,7 @@ export function ChatPageClient({
       </AlertDialog>
 
       <AlertDialog open={isClearChatDialogOpen} onOpenChange={setIsClearChatDialogOpen}>
-          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+          <AlertDialogContent>
               <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -867,7 +865,7 @@ export function ChatPageClient({
       </AlertDialog>
 
        <AlertDialog open={isBlockUserDialogOpen} onOpenChange={setIsBlockUserDialogOpen}>
-          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+          <AlertDialogContent>
               <AlertDialogHeader>
               <AlertDialogTitle>Block {displayName}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -884,7 +882,7 @@ export function ChatPageClient({
       </AlertDialog>
       
       <AlertDialog open={isLeaveChannelOpen} onOpenChange={setIsLeaveChannelOpen}>
-          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+          <AlertDialogContent>
               <AlertDialogHeader>
               <AlertDialogTitle>Leave #{channel?.name}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -902,14 +900,14 @@ export function ChatPageClient({
 
       <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <div className="mx-auto max-w-4xl">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-card/60 backdrop-blur-md border border-primary/30 shadow-lg animate-aurora-glow">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-card shadow-lg">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="rounded-full">
                         <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 bg-background/80 backdrop-blur-md border-primary/30 text-white">
+                <PopoverContent className="w-fit p-2">
                     <p>Emoji picker placeholder</p>
                 </PopoverContent>
             </Popover>
@@ -934,25 +932,25 @@ export function ChatPageClient({
                         <span className="sr-only">Attach file</span>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 mb-2 bg-background/80 backdrop-blur-md border-primary/30" side="top" align="start">
+                <PopoverContent className="w-fit p-2 mb-2" side="top" align="start">
                     <div className="grid grid-cols-3 gap-2">
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleAttachImageClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
                             <ImageIcon className="h-6 w-6 text-primary" />
                             <span className="text-xs">Image</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleCameraClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleCameraClick}>
                             <Camera className="h-6 w-6 text-primary" />
                             <span className="text-xs">Camera</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleAttachDocumentClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachDocumentClick}>
                             <FileText className="h-6 w-6 text-primary" />
                             <span className="text-xs">Document</span>
                        </Button>
-                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleLocationClick}>
+                       <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleLocationClick}>
                             <MapPin className="h-6 w-6 text-primary" />
                             <span className="text-xs">Location</span>
                        </Button>
-                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => handlePlaceholderAttachment('contact')}>
+                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={() => handlePlaceholderAttachment('contact')}>
                             <Contact className="h-6 w-6 text-primary" />
                             <span className="text-xs">Contact</span>
                        </Button>
@@ -962,7 +960,7 @@ export function ChatPageClient({
 
             <div className="flex-1 relative">
              {imagePreview && (
-                <div className="p-2 absolute bottom-full bg-card/80 backdrop-blur-sm w-full rounded-t-md">
+                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
                     <div className="relative w-fit">
                         <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md" />
                          <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-muted-foreground" onClick={handleRemoveImage}>
@@ -972,7 +970,7 @@ export function ChatPageClient({
                 </div>
             )}
              {showCamera && (
-                <div className="p-2 absolute bottom-full bg-card/80 backdrop-blur-sm w-full rounded-t-md">
+                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
                     <div className="relative">
                         <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted />
                         {!hasCameraPermission && (
@@ -991,7 +989,7 @@ export function ChatPageClient({
             )}
               <input
                 placeholder="Type a message"
-                className="bg-transparent w-full border-none focus:ring-0 focus:outline-none text-white placeholder:text-muted-foreground"
+                className="bg-transparent w-full border-none focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => {

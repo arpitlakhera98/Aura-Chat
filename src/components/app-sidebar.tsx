@@ -52,7 +52,7 @@ const NavRail = () => {
     if (!currentUser) return null;
 
     return (
-        <div className="flex flex-col items-center justify-between h-full w-20 bg-card/50 py-6">
+        <div className="flex flex-col items-center justify-between h-full w-20 bg-card py-6">
             <div className="flex flex-col items-center gap-2">
                 <Link href={`/profile/${currentUser.id}`}>
                     <Avatar className="h-12 w-12 border-2 border-primary mb-4 transition-all hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary))]">
@@ -114,7 +114,7 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Add New Contact</DialogTitle>
                     <DialogDescription>
@@ -127,13 +127,13 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
                             <Label htmlFor="name" className="text-right">
                                 Name
                             </Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3 bg-input/80 border-white/20" placeholder="Alex" />
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="Alex" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="email" className="text-right">
                                 Email
                             </Label>
-                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3 bg-input/80 border-white/20" placeholder="alex@example.com" />
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" placeholder="alex@example.com" />
                         </div>
                     </div>
                     <DialogFooter>
@@ -185,7 +185,7 @@ function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange
     
     return (
          <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Create New Group</DialogTitle>
                     <DialogDescription>
@@ -201,17 +201,16 @@ function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange
                             value={groupName} 
                             onChange={(e) => setGroupName(e.target.value)} 
                             placeholder="e.g., Project Team"
-                            className="bg-input/80 border-white/20"
                         />
                     </div>
                     <div className="space-y-2">
                          <Label>Select Members</Label>
-                         <ScrollArea className="h-48 pr-4 border border-white/10 rounded-md">
+                         <ScrollArea className="h-48 pr-4 border rounded-md">
                             <div className="p-2 space-y-2">
                                 {potentialMembers.map(user => (
                                     <div
                                         key={user.id}
-                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10 cursor-pointer"
+                                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent cursor-pointer"
                                         onClick={() => handleSelectUser(user.id)}
                                     >
                                         <Checkbox
@@ -248,16 +247,16 @@ const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNew
     const filters: ChatFilter[] = ['All', 'Unread', 'Direct', 'Groups'];
 
     return (
-        <SidebarHeader className="p-4 border-b border-border/20 space-y-4">
+        <SidebarHeader className="p-4 border-b space-y-4">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight text-primary">CHATS</h1>
+                <h1 className="text-2xl font-bold tracking-tight">CHATS</h1>
                  <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="bg-primary/20 text-primary rounded-full h-10 w-10 hover:bg-primary/30">
+                        <Button variant="ghost" size="icon" className="text-foreground rounded-full h-10 w-10 hover:bg-accent">
                             <PlusCircle className="h-6 w-6" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
+                    <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={onNewGroupClick} className="gap-2">
                             <Users className="h-4 w-4" />
                             New Group
@@ -271,7 +270,7 @@ const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNew
             </div>
              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search chats..." className="pl-10 bg-input/80 border-white/20 rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]" />
+                <Input placeholder="Search chats..." className="pl-10 rounded-full" />
             </div>
             <div className="flex items-center gap-2">
                 {filters.map(filter => (
@@ -281,10 +280,10 @@ const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNew
                         size="sm"
                         onClick={() => onFilterChange(filter)}
                         className={cn(
-                            'rounded-full px-4 py-1 h-auto text-sm font-semibold border-border/30',
+                            'rounded-full px-4 py-1 h-auto text-sm font-semibold',
                             activeFilter === filter
-                                ? 'bg-primary text-primary-foreground border-transparent'
-                                : 'bg-transparent text-muted-foreground hover:bg-accent/50 hover:text-white'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-transparent text-muted-foreground hover:bg-accent'
                         )}
                     >
                         {filter}
@@ -402,7 +401,7 @@ const ChatList = () => {
     }, [activeFilter, sortedChannels, allMessages]);
     
     return (
-        <div className="w-96 flex flex-col h-full bg-background/60 backdrop-blur-sm border-r border-primary/20">
+        <div className="w-96 flex flex-col h-full bg-background border-r">
             <ChatListHeader 
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
@@ -413,8 +412,8 @@ const ChatList = () => {
                 {activeFilter !== 'Groups' && (
                     <Collapsible defaultOpen>
                         <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
-                            <h2 className="text-sm font-bold tracking-wider text-primary">DIRECT MESSAGES</h2>
-                            <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                            <h2 className="text-sm font-bold tracking-wider text-muted-foreground">DIRECT MESSAGES</h2>
+                            <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform [&[data-state=open]]:rotate-180" />
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                             <SidebarMenu className="pt-2">
@@ -431,17 +430,14 @@ const ChatList = () => {
                                             <Link href={href}>
                                                 <div className={cn(
                                                     "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
-                                                    "bg-card/50 backdrop-filter backdrop-blur-xl border border-white/10",
-                                                    "shadow-lg",
-                                                    isActive ? "border-t-primary/80" : "border-t-transparent hover:bg-white/10"
+                                                    isActive ? "bg-accent" : "hover:bg-accent"
                                                 )}>
-                                                    <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
                                                     <Avatar className="h-12 w-12 border-2 border-transparent">
                                                         <AvatarImage src={user.avatarUrl} />
                                                         <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
-                                                        <h3 className="font-semibold truncate text-base text-white">{displayName}</h3>
+                                                        <h3 className="font-semibold truncate text-base">{displayName}</h3>
                                                         <p className="text-sm text-muted-foreground truncate">
                                                             {lastMessage ? lastMessage.content : 'No messages yet'}
                                                         </p>
@@ -465,8 +461,8 @@ const ChatList = () => {
                  {activeFilter !== 'Direct' && (
                     <Collapsible defaultOpen>
                         <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1">
-                        <h2 className="text-sm font-bold tracking-wider text-primary">CHANNELS</h2>
-                        <ChevronDown className="h-5 w-5 text-primary transition-transform [&[data-state=open]]:rotate-180" />
+                        <h2 className="text-sm font-bold tracking-wider text-muted-foreground">CHANNELS</h2>
+                        <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform [&[data-state=open]]:rotate-180" />
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                             <SidebarMenu className="pt-2">
@@ -480,16 +476,14 @@ const ChatList = () => {
                                             <Link href={href}>
                                                 <div className={cn(
                                                     "flex items-center gap-4 p-3 rounded-lg transition-colors",
-                                                    "bg-card/50 backdrop-filter backdrop-blur-xl border",
-                                                    "shadow-lg",
-                                                    isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
+                                                    isActive ? "bg-accent" : "hover:bg-accent"
                                                 )}>
                                                     <Avatar className="h-12 w-12 flex items-center justify-center bg-muted rounded-lg">
                                                         <AvatarImage src={channel.avatarUrl} />
                                                         <AvatarFallback className="text-primary font-bold text-2xl">#</AvatarFallback>
                                                     </Avatar>
                                                     <div className="flex-1 overflow-hidden">
-                                                        <h3 className="font-semibold truncate text-base text-white">{channel.name}</h3>
+                                                        <h3 className="font-semibold truncate text-base">{channel.name}</h3>
                                                         <p className="text-sm text-muted-foreground truncate">
                                                             {lastMessage ? lastMessage.content : `Welcome to #${channel.name}`}
                                                         </p>

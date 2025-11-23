@@ -48,7 +48,7 @@ export default function BlockedUsersPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 pt-6">
-      <Card className="w-full max-w-2xl mx-auto animate-aurora-glow border-primary/20 shadow-2xl bg-card/60 backdrop-blur-md">
+      <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Blocked Users</CardTitle>
           <CardDescription>
@@ -62,7 +62,7 @@ export default function BlockedUsersPage() {
               {blockedUsers.map((user) => (
                 <li
                   key={user.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
+                  className="flex items-center justify-between p-4 bg-card rounded-lg border"
                 >
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12">

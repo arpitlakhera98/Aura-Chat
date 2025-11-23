@@ -33,8 +33,8 @@ const SettingsListItem = ({
     const content = (
         <div 
         onClick={onClick}
-        className="flex items-center gap-4 px-4 py-3 bg-card/50 border-t border-white/10 hover:bg-card/80 transition-colors cursor-pointer rounded-lg shadow-lg">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
+        className="flex items-center gap-4 px-4 py-3 bg-card border rounded-lg shadow-sm hover:bg-accent transition-colors cursor-pointer">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <Icon className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
@@ -78,14 +78,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex h-full flex-col text-card-foreground p-4">
+    <div className="flex h-full flex-col p-4">
       <header className="p-4 space-y-4">
         <h1 className="text-3xl font-bold">Settings</h1>
       </header>
 
       <main className="flex-1 overflow-y-auto space-y-6">
         <Link href={`/profile/${currentUser.id}`} className="px-4 block">
-             <div className="flex items-center gap-4 p-4 rounded-lg bg-card/60 backdrop-blur-md border border-white/10 shadow-lg hover:bg-card/80 transition-colors">
+             <div className="flex items-center gap-4 p-4 rounded-lg bg-card border shadow-sm hover:bg-accent transition-colors">
               <Avatar className="h-16 w-16 border-2 border-primary">
                 <AvatarImage asChild src={currentUser.avatarUrl}>
                   <Image
@@ -104,7 +104,7 @@ export default function SettingsPage() {
             </div>
           </Link>
           
-          <Separator className="bg-white/10" />
+          <Separator />
 
           <div className="space-y-3 px-4">
             <SettingsListItem 
@@ -126,10 +126,10 @@ export default function SettingsPage() {
             />
           </div>
         
-          <Separator className="bg-white/10" />
+          <Separator />
 
             <div className="px-4">
-                <Button onClick={handleLogout} variant="destructive" className="w-full justify-start text-left p-4 h-auto bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300">
+                <Button onClick={handleLogout} variant="destructive" className="w-full justify-start text-left p-4 h-auto">
                     <LogOut className="h-5 w-5 mr-3" />
                     Log Out
                 </Button>

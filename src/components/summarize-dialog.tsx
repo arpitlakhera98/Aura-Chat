@@ -58,7 +58,7 @@ export function SummarizeDialog({ messages }: { messages: Message[] }) {
           <span className="sr-only">Summarize</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Conversation Summary</DialogTitle>
           <DialogDescription>
@@ -68,9 +68,9 @@ export function SummarizeDialog({ messages }: { messages: Message[] }) {
         <div className="space-y-4 py-4">
           {isLoading && (
             <div className="space-y-2">
-              <Skeleton className="h-4 w-full bg-muted/50" />
-              <Skeleton className="h-4 w-full bg-muted/50" />
-              <Skeleton className="h-4 w-3/4 bg-muted/50" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
             </div>
           )}
           {summary && <p className="text-sm text-muted-foreground">{summary}</p>}
