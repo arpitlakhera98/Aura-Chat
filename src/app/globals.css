@@ -9,33 +9,33 @@ body {
 
 @layer base {
   :root {
-    --background: 222 84% 4%; /* Dark blue background */
-    --foreground: 210 40% 98%;
+    --background: 0 0% 100%; /* White */
+    --foreground: 222 84% 4%; /* Dark Blue */
 
-    --card: 217 33% 10%; /* Slightly lighter blue for cards */
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 96%; /* Light gray for cards */
+    --card-foreground: 222 84% 4%;
 
-    --popover: 222 84% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 84% 4%;
 
     --primary: 200 100% 50%; /* Sky Blue */
     --primary-foreground: 222 84% 4%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 222 84% 4%;
     
-    --muted: 217 33% 12%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 240 5% 45%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 94%;
+    --accent-foreground: 222 84% 4%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 200 100% 30%;
-    --input: 217 33% 12%;
-    --ring: 200 100% 60%; /* Lighter sky blue for focus */
+    --border: 0 0% 89%;
+    --input: 0 0% 92%;
+    --ring: 200 100% 50%;
     
     --radius: 0.8rem;
 
@@ -45,14 +45,14 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    --sidebar-background: 222 84% 6%;
-    --sidebar-foreground: 0 0% 80%;
-    --sidebar-primary: 200 100% 50%; /* Sky Blue */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 222 84% 10%;
+    --sidebar-primary: 200 100% 50%;
     --sidebar-primary-foreground: 222 84% 4%;
-    --sidebar-accent: 217 33% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 200 100% 20%;
-    --sidebar-ring: 200 100% 60%;
+    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent-foreground: 222 84% 4%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 200 100% 50%;
   }
   .dark {
     --background: 222 84% 4%; /* Dark blue background */
@@ -91,7 +91,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    background-image: linear-gradient(135deg, hsl(222 84% 4%) 0%, hsl(222 84% 8%) 50%, hsl(222 84% 4%) 100%);
   }
 }
 
