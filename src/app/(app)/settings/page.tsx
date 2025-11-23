@@ -116,7 +116,8 @@ export default function SettingsPage() {
             <SettingsListItem 
                 icon={Palette} 
                 title="Appearance" 
-                subtitle="Customize the look and feel" 
+                subtitle="Customize the look and feel"
+                href="/settings/appearance"
             />
              <SettingsListItem
               icon={ShieldBan}
