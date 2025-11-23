@@ -6,9 +6,15 @@ import { useTheme } from '@/components/theme-provider';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AppearancePage() {
   const { theme, setTheme } = useTheme();
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const themes = [
     { name: 'Light', value: 'light', bg: 'bg-neutral-100', text: 'text-black' },
@@ -35,26 +41,32 @@ export default function AppearancePage() {
           <div>
             <h3 className="text-lg font-semibold mb-4">Theme</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {themes.map((t) => (
-                <div key={t.value}>
-                  <button
-                    onClick={() => setTheme(t.value)}
-                    className={cn(
-                      'block w-full border-2 rounded-lg p-2 transition-colors',
-                      theme === t.value ? 'border-primary' : 'border-border'
-                    )}
-                  >
-                    <div className={cn("h-24 rounded-md flex items-center justify-center relative", t.bg)}>
-                       <span className={cn('font-semibold', t.text)}>{t.name}</span>
-                       {theme === t.value && (
-                           <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                               <Check className="h-4 w-4 text-primary-foreground" />
-                           </div>
-                       )}
-                    </div>
-                  </button>
-                </div>
-              ))}
+              {!isClient ? (
+                Array.from({ length: 9 }).map((_, i) => (
+                    <Skeleton key={i} className="h-28 w-full" />
+                ))
+              ) : (
+                themes.map((t) => (
+                  <div key={t.value}>
+                    <button
+                      onClick={() => setTheme(t.value)}
+                      className={cn(
+                        'block w-full border-2 rounded-lg p-2 transition-colors',
+                        theme === t.value ? 'border-primary' : 'border-border'
+                      )}
+                    >
+                      <div className={cn("h-24 rounded-md flex items-center justify-center relative", t.bg)}>
+                         <span className={cn('font-semibold', t.text)}>{t.name}</span>
+                         {theme === t.value && (
+                             <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                                 <Check className="h-4 w-4 text-primary-foreground" />
+                             </div>
+                         )}
+                      </div>
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </CardContent>
