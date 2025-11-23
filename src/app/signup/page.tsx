@@ -53,8 +53,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Card className="w-full max-w-md backdrop-blur-md border-white/20 shadow-lg">
         <CardHeader className="space-y-1 text-center">
            <div className="flex justify-center mb-4">
             <Logo />
@@ -68,15 +68,15 @@ export default function SignupPage() {
             <CardContent className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" type="text" placeholder="Alex" required value={name} onChange={e => setName(e.target.value)} />
+                <Input id="name" type="text" placeholder="Alex" required value={name} onChange={e => setName(e.target.value)} className="bg-white/10" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} />
+                <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={e => setEmail(e.target.value)} className="bg-white/10"/>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} />
+                <Input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} className="bg-white/10"/>
             </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">

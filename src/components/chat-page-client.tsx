@@ -87,7 +87,7 @@ function AddMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md backdrop-blur-lg">
         <DialogHeader>
           <DialogTitle>Add Members to #{channel.name}</DialogTitle>
           <DialogDescription>
@@ -195,7 +195,7 @@ function EditChannelDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md backdrop-blur-lg">
         <DialogHeader>
           <DialogTitle>Edit Channel</DialogTitle>
           <DialogDescription>
@@ -321,7 +321,7 @@ const ChannelMembersPopover = ({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80">
+        <PopoverContent className="w-80 backdrop-blur-lg">
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Members</h4>
@@ -386,7 +386,7 @@ const ChannelMembersPopover = ({
       
       {/* Remove User Dialog */}
       <AlertDialog open={!!userToRemove} onOpenChange={(open) => !open && setUserToRemove(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="backdrop-blur-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {userToRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -402,7 +402,7 @@ const ChannelMembersPopover = ({
 
       {/* Block User Dialog */}
       <AlertDialog open={!!userToBlock} onOpenChange={(open) => !open && setUserToBlock(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="backdrop-blur-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Block {userToBlock?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -683,7 +683,7 @@ export function ChatPageClient({
         {channel && <AddMemberDialog channel={channel} open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen} />}
         {channel && isAdmin && <EditChannelDialog channel={channel} open={isEditChannelOpen} onOpenChange={setIsEditChannelOpen} />}
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
-            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-card shadow-lg">
+            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-card/80 shadow-lg backdrop-blur-lg">
                 {channel ? (
                     <ChannelMembersPopover channel={channel} currentUser={currentUser} />
                 ) : (
@@ -795,10 +795,10 @@ export function ChatPageClient({
                     )}
                     <div
                         className={cn(
-                        'group relative rounded-2xl px-4 py-2.5 text-base',
+                        'group relative rounded-2xl px-4 py-2.5 text-base shadow-md',
                         isSender
                             ? 'bg-primary text-primary-foreground self-end'
-                            : 'bg-muted text-foreground',
+                            : 'bg-card/90 text-foreground backdrop-blur-sm',
                         isFirstInGroup && (isSender ? 'rounded-tr-none' : 'rounded-tl-none'),
                         isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
                         {'p-1.5': !!message.imageUrl}
@@ -824,7 +824,7 @@ export function ChatPageClient({
         )}
       </main>
       <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="backdrop-blur-lg">
               <AlertDialogHeader>
               <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
               <AlertDialogDescription>
@@ -848,7 +848,7 @@ export function ChatPageClient({
       </AlertDialog>
 
       <AlertDialog open={isClearChatDialogOpen} onOpenChange={setIsClearChatDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="backdrop-blur-lg">
               <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -865,7 +865,7 @@ export function ChatPageClient({
       </AlertDialog>
 
        <AlertDialog open={isBlockUserDialogOpen} onOpenChange={setIsBlockUserDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="backdrop-blur-lg">
               <AlertDialogHeader>
               <AlertDialogTitle>Block {displayName}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -882,7 +882,7 @@ export function ChatPageClient({
       </AlertDialog>
       
       <AlertDialog open={isLeaveChannelOpen} onOpenChange={setIsLeaveChannelOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="backdrop-blur-lg">
               <AlertDialogHeader>
               <AlertDialogTitle>Leave #{channel?.name}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -900,14 +900,14 @@ export function ChatPageClient({
 
       <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <div className="mx-auto max-w-4xl">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-card shadow-lg">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-card/80 shadow-lg backdrop-blur-lg">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="rounded-full">
                         <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2">
+                <PopoverContent className="w-fit p-2 backdrop-blur-lg">
                     <p>Emoji picker placeholder</p>
                 </PopoverContent>
             </Popover>
@@ -932,7 +932,7 @@ export function ChatPageClient({
                         <span className="sr-only">Attach file</span>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 mb-2" side="top" align="start">
+                <PopoverContent className="w-fit p-2 mb-2 backdrop-blur-lg" side="top" align="start">
                     <div className="grid grid-cols-3 gap-2">
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1" onClick={handleAttachImageClick}>
                             <ImageIcon className="h-6 w-6 text-primary" />

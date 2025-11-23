@@ -52,7 +52,7 @@ const NavRail = () => {
     if (!currentUser) return null;
 
     return (
-        <div className="flex flex-col items-center justify-between h-full w-20 bg-card py-6">
+        <div className="flex flex-col items-center justify-between h-full w-20 bg-card/80 py-6 backdrop-blur-lg">
             <div className="flex flex-col items-center gap-2">
                 <Link href={`/profile/${currentUser.id}`}>
                     <Avatar className="h-12 w-12 border-2 border-primary mb-4 transition-all hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary))]">
@@ -114,7 +114,7 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="backdrop-blur-lg">
                 <DialogHeader>
                     <DialogTitle>Add New Contact</DialogTitle>
                     <DialogDescription>
@@ -185,7 +185,7 @@ function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange
     
     return (
          <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md backdrop-blur-lg">
                 <DialogHeader>
                     <DialogTitle>Create New Group</DialogTitle>
                     <DialogDescription>
@@ -401,7 +401,7 @@ const ChatList = () => {
     }, [activeFilter, sortedChannels, allMessages]);
     
     return (
-        <div className="w-96 flex flex-col h-full bg-background border-r">
+        <div className="w-96 flex flex-col h-full bg-background/80 border-r backdrop-blur-lg">
             <ChatListHeader 
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}

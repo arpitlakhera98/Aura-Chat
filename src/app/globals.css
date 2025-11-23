@@ -9,32 +9,32 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* White */
+    --background: 210 40% 98% / 0.1; /* Semi-transparent white */
     --foreground: 222 84% 4%; /* Dark Blue */
 
-    --card: 0 0% 96%; /* Light gray for cards */
+    --card: 210 40% 98% / 0.2; /* Semi-transparent white for cards */
     --card-foreground: 222 84% 4%;
 
-    --popover: 0 0% 100%;
+    --popover: 210 40% 98% / 0.5;
     --popover-foreground: 222 84% 4%;
 
     --primary: 200 100% 50%; /* Sky Blue */
     --primary-foreground: 222 84% 4%;
 
-    --secondary: 0 0% 94%;
+    --secondary: 0 0% 94% / 0.5;
     --secondary-foreground: 222 84% 4%;
     
-    --muted: 0 0% 96%;
+    --muted: 0 0% 96% / 0.3;
     --muted-foreground: 240 5% 45%;
 
-    --accent: 0 0% 94%;
+    --accent: 0 0% 94% / 0.4;
     --accent-foreground: 222 84% 4%;
 
     --destructive: 0 63% 40%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 89%;
-    --input: 0 0% 92%;
+    --border: 0 0% 89% / 0.3;
+    --input: 0 0% 92% / 0.5;
     --ring: 200 100% 50%;
     
     --radius: 0.8rem;
@@ -45,13 +45,13 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 210 40% 98% / 0.2;
     --sidebar-foreground: 222 84% 10%;
     --sidebar-primary: 200 100% 50%;
     --sidebar-primary-foreground: 222 84% 4%;
-    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent: 0 0% 92% / 0.4;
     --sidebar-accent-foreground: 222 84% 4%;
-    --sidebar-border: 0 0% 89%;
+    --sidebar-border: 0 0% 89% / 0.3;
     --sidebar-ring: 200 100% 50%;
   }
 }
