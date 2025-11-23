@@ -51,17 +51,7 @@ export function ThemeProvider({
       effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
     
-    // Always add the base theme (light or dark)
-    if (['zinc', 'rose', 'blue', 'green', 'yellow', 'orange', 'purple'].includes(effectiveTheme)) {
-        root.classList.add('dark');
-    } else {
-        root.classList.add(effectiveTheme);
-    }
-    
-    // Add the specific color theme class if it's not light or dark
-    if (effectiveTheme !== 'light' && effectiveTheme !== 'dark') {
-      root.classList.add(effectiveTheme);
-    }
+    root.classList.add(effectiveTheme);
     
   }, [theme, enableSystem]);
 

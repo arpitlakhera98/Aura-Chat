@@ -11,13 +11,13 @@ export default function AppearancePage() {
   const { theme, setTheme } = useTheme();
 
   const themes = [
-    { name: 'Light', value: 'light', bg: 'bg-white', text: 'text-black' },
-    { name: 'Dark', value: 'dark', bg: 'bg-black', text: 'text-white' },
-    { name: 'Zinc', value: 'zinc', bg: 'bg-zinc-900', text: 'text-white' },
+    { name: 'Light', value: 'light', bg: 'bg-neutral-100', text: 'text-black' },
+    { name: 'Dark', value: 'dark', bg: 'bg-neutral-950', text: 'text-white' },
+    { name: 'Zinc', value: 'zinc', bg: 'bg-zinc-950', text: 'text-white' },
     { name: 'Rose', value: 'rose', bg: 'bg-rose-950', text: 'text-white' },
     { name: 'Blue', value: 'blue', bg: 'bg-blue-950', text: 'text-white' },
     { name: 'Green', value: 'green', bg: 'bg-green-950', text: 'text-white' },
-    { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-950', text: 'text-white' },
+    { name: 'Yellow', value: 'yellow', bg: 'bg-yellow-950', text: 'text-black' },
     { name: 'Orange', value: 'orange', bg: 'bg-orange-950', text: 'text-white' },
     { name: 'Purple', value: 'purple', bg: 'bg-purple-950', text: 'text-white' },
   ];
