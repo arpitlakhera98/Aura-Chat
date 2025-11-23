@@ -52,7 +52,7 @@ const NavRail = () => {
     if (!currentUser) return null;
 
     return (
-        <div className="flex flex-col items-center justify-between h-full w-20 bg-card py-6">
+        <div className="flex flex-col items-center justify-between h-full w-20 bg-card/50 py-6">
             <div className="flex flex-col items-center gap-2">
                 <Link href={`/profile/${currentUser.id}`}>
                     <Avatar className="h-12 w-12 border-2 border-primary mb-4 transition-all hover:scale-110 hover:shadow-[0_0_20px_hsl(var(--primary))]">
@@ -114,7 +114,7 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
                 <DialogHeader>
                     <DialogTitle>Add New Contact</DialogTitle>
                     <DialogDescription>
@@ -127,13 +127,13 @@ function AddContactDialog({ open, onOpenChange }: { open: boolean, onOpenChange:
                             <Label htmlFor="name" className="text-right">
                                 Name
                             </Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" placeholder="Alex" />
+                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3 bg-input/80 border-white/20" placeholder="Alex" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="email" className="text-right">
                                 Email
                             </Label>
-                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" placeholder="alex@example.com" />
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3 bg-input/80 border-white/20" placeholder="alex@example.com" />
                         </div>
                     </div>
                     <DialogFooter>
@@ -185,7 +185,7 @@ function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange
     
     return (
          <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+            <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
                 <DialogHeader>
                     <DialogTitle>Create New Group</DialogTitle>
                     <DialogDescription>
@@ -201,7 +201,7 @@ function CreateGroupDialog({ open, onOpenChange }: { open: boolean, onOpenChange
                             value={groupName} 
                             onChange={(e) => setGroupName(e.target.value)} 
                             placeholder="e.g., Project Team"
-                            className="bg-black/20 border-white/10"
+                            className="bg-input/80 border-white/20"
                         />
                     </div>
                     <div className="space-y-2">
@@ -257,7 +257,7 @@ const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNew
                             <PlusCircle className="h-6 w-6" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                    <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
                         <DropdownMenuItem onClick={onNewGroupClick} className="gap-2">
                             <Users className="h-4 w-4" />
                             New Group
@@ -271,7 +271,7 @@ const ChatListHeader = ({ activeFilter, onFilterChange, onAddContactClick, onNew
             </div>
              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input placeholder="Search chats..." className="pl-10 bg-black/30 border-white/10 rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]" />
+                <Input placeholder="Search chats..." className="pl-10 bg-input/80 border-white/20 rounded-full focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]" />
             </div>
             <div className="flex items-center gap-2">
                 {filters.map(filter => (
@@ -402,7 +402,7 @@ const ChatList = () => {
     }, [activeFilter, sortedChannels, allMessages]);
     
     return (
-        <div className="w-96 flex flex-col h-full bg-background/80 backdrop-blur-sm border-r border-border/20">
+        <div className="w-96 flex flex-col h-full bg-background/60 backdrop-blur-sm border-r border-primary/20">
             <ChatListHeader 
                 activeFilter={activeFilter}
                 onFilterChange={setActiveFilter}
@@ -431,11 +431,11 @@ const ChatList = () => {
                                             <Link href={href}>
                                                 <div className={cn(
                                                     "relative flex items-center gap-4 p-3 rounded-lg transition-colors group",
-                                                    "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border border-white/10",
+                                                    "bg-card/50 backdrop-filter backdrop-blur-xl border border-white/10",
                                                     "shadow-lg",
-                                                    isActive ? "border-t-primary/80" : "border-t-white/10 hover:bg-white/10"
+                                                    isActive ? "border-t-primary/80" : "border-t-transparent hover:bg-white/10"
                                                 )}>
-                                                    <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
+                                                    <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
                                                     <Avatar className="h-12 w-12 border-2 border-transparent">
                                                         <AvatarImage src={user.avatarUrl} />
                                                         <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
@@ -448,7 +448,7 @@ const ChatList = () => {
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1 text-xs self-start pt-1">
                                                         {unreadCount > 0 && (
-                                                            <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
+                                                            <Badge className="bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
                                                         )}
                                                         <p className={cn("text-muted-foreground", unreadCount > 0 && "mt-auto")}>{lastMessage ? formatTimestamp(lastMessage.timestamp) : ''}</p>
                                                     </div>
@@ -480,7 +480,7 @@ const ChatList = () => {
                                             <Link href={href}>
                                                 <div className={cn(
                                                     "flex items-center gap-4 p-3 rounded-lg transition-colors",
-                                                    "bg-clip-padding bg-black/30 backdrop-filter backdrop-blur-xl bg-opacity-60 border",
+                                                    "bg-card/50 backdrop-filter backdrop-blur-xl border",
                                                     "shadow-lg",
                                                     isActive ? "border-primary/50" : "border-white/10 hover:bg-white/10"
                                                 )}>
@@ -496,7 +496,7 @@ const ChatList = () => {
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1 text-xs self-start pt-1">
                                                         {unreadCount > 0 ? (
-                                                            <Badge className="bg-primary text-white h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
+                                                            <Badge className="bg-primary text-primary-foreground h-5 w-5 flex items-center justify-center p-0 rounded-full border-none">{unreadCount}</Badge>
                                                         ) : (
                                                             channel.memberIds.length < 5 && <Badge variant="secondary" className="bg-green-500/80 text-white border-0">Join</Badge>
                                                         )}

@@ -87,7 +87,7 @@ function AddMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
         <DialogHeader>
           <DialogTitle>Add Members to #{channel.name}</DialogTitle>
           <DialogDescription>
@@ -195,7 +195,7 @@ function EditChannelDialog({
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
         <DialogHeader>
           <DialogTitle>Edit Channel</DialogTitle>
           <DialogDescription>
@@ -226,7 +226,7 @@ function EditChannelDialog({
                     id="channel-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="bg-black/20 border-white/10"
+                    className="bg-input/80 border-white/20"
                 />
             </div>
         </div>
@@ -322,7 +322,7 @@ const ChannelMembersPopover = ({
             </div>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-80 bg-black/80 border-white/10 text-white">
+        <PopoverContent className="w-80 bg-background/60 backdrop-blur-md border-primary/30 text-white">
           <div className="grid gap-4">
             <div className="space-y-2">
               <h4 className="font-medium leading-none">Members</h4>
@@ -359,7 +359,7 @@ const ChannelMembersPopover = ({
                                 <MoreVertical className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                        <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
                             <DropdownMenuItem onClick={() => router.push(`/profile/${member.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Profile
@@ -387,7 +387,7 @@ const ChannelMembersPopover = ({
       
       {/* Remove User Dialog */}
       <AlertDialog open={!!userToRemove} onOpenChange={(open) => !open && setUserToRemove(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {userToRemove?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -403,7 +403,7 @@ const ChannelMembersPopover = ({
 
       {/* Block User Dialog */}
       <AlertDialog open={!!userToBlock} onOpenChange={(open) => !open && setUserToBlock(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Block {userToBlock?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -446,6 +446,11 @@ export function ChatPageClient({
   const [isLeaveChannelOpen, setIsLeaveChannelOpen] = React.useState(false);
   const [isAddMemberOpen, setIsAddMemberOpen] = React.useState(false);
   const [isEditChannelOpen, setIsEditChannelOpen] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   React.useEffect(() => {
     if (scrollAreaRef.current) {
@@ -659,7 +664,7 @@ export function ChatPageClient({
       router.push('/channel/1'); // Redirect to a default channel
   }
   
-  if (!currentUser || !chatTarget) {
+  if (!isClient || !currentUser || !chatTarget) {
     return <div className="flex h-full items-center justify-center"><p>Loading chat...</p></div>;
   }
 
@@ -679,7 +684,7 @@ export function ChatPageClient({
         {channel && <AddMemberDialog channel={channel} open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen} />}
         {channel && isAdmin && <EditChannelDialog channel={channel} open={isEditChannelOpen} onOpenChange={setIsEditChannelOpen} />}
         <header className="absolute top-0 left-0 right-0 z-10 p-4">
-            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+            <div className="mx-auto max-w-4xl flex items-center justify-between gap-4 rounded-full p-2 pl-4 bg-card/60 backdrop-blur-md border border-primary/30 shadow-lg animate-aurora-glow">
                 {channel ? (
                     <ChannelMembersPopover channel={channel} currentUser={currentUser} />
                 ) : (
@@ -710,7 +715,7 @@ export function ChatPageClient({
                                 <span className="sr-only">More options</span>
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-black/80 border-white/10 text-white">
+                        <DropdownMenuContent align="end" className="bg-background/80 backdrop-blur-md border-primary/30 text-white">
                             {!isChannel && <DropdownMenuItem onClick={openNicknameDialog}>Edit Nickname</DropdownMenuItem>}
                             {channel && isAdmin && (
                                 <DropdownMenuItem onClick={() => setIsAddMemberOpen(true)} className="flex items-center gap-2">
@@ -794,7 +799,7 @@ export function ChatPageClient({
                         'group relative rounded-2xl px-4 py-2.5 text-base',
                         isSender
                             ? 'bg-primary text-primary-foreground self-end'
-                            : 'bg-muted text-foreground animate-aurora-glow border border-white/10',
+                            : 'bg-muted/60 text-foreground animate-aurora-glow border border-white/10 backdrop-blur-sm',
                         isFirstInGroup && (isSender ? 'rounded-tr-none' : 'rounded-tl-none'),
                         isLastInGroup && (isSender ? 'rounded-br-none' : 'rounded-bl-none'),
                         {'p-1.5': !!message.imageUrl}
@@ -820,7 +825,7 @@ export function ChatPageClient({
         )}
       </main>
       <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
               <AlertDialogHeader>
               <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
               <AlertDialogDescription>
@@ -834,6 +839,7 @@ export function ChatPageClient({
                       value={nicknameInput}
                       onChange={(e) => setNicknameInput(e.target.value)}
                       placeholder="Enter nickname"
+                      className="bg-input/80 border-white/20"
                   />
               </div>
               <AlertDialogFooter>
@@ -844,7 +850,7 @@ export function ChatPageClient({
       </AlertDialog>
 
       <AlertDialog open={isClearChatDialogOpen} onOpenChange={setIsClearChatDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
               <AlertDialogHeader>
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -861,7 +867,7 @@ export function ChatPageClient({
       </AlertDialog>
 
        <AlertDialog open={isBlockUserDialogOpen} onOpenChange={setIsBlockUserDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
               <AlertDialogHeader>
               <AlertDialogTitle>Block {displayName}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -878,7 +884,7 @@ export function ChatPageClient({
       </AlertDialog>
       
       <AlertDialog open={isLeaveChannelOpen} onOpenChange={setIsLeaveChannelOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
               <AlertDialogHeader>
               <AlertDialogTitle>Leave #{channel?.name}?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -896,14 +902,14 @@ export function ChatPageClient({
 
       <footer className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <div className="mx-auto max-w-4xl">
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 rounded-full p-2 bg-card/60 backdrop-blur-md border border-primary/30 shadow-lg animate-aurora-glow">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button type="button" variant="ghost" size="icon" className="rounded-full">
                         <Smile className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 bg-black/80 border-white/10 text-white">
+                <PopoverContent className="w-fit p-2 bg-background/80 backdrop-blur-md border-primary/30 text-white">
                     <p>Emoji picker placeholder</p>
                 </PopoverContent>
             </Popover>
@@ -928,7 +934,7 @@ export function ChatPageClient({
                         <span className="sr-only">Attach file</span>
                     </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-fit p-2 mb-2 bg-black/80 border-white/10" side="top" align="start">
+                <PopoverContent className="w-fit p-2 mb-2 bg-background/80 backdrop-blur-md border-primary/30" side="top" align="start">
                     <div className="grid grid-cols-3 gap-2">
                        <Button variant="outline" size="icon" className="h-14 w-14 flex-col gap-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={handleAttachImageClick}>
                             <ImageIcon className="h-6 w-6 text-primary" />
@@ -956,7 +962,7 @@ export function ChatPageClient({
 
             <div className="flex-1 relative">
              {imagePreview && (
-                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
+                <div className="p-2 absolute bottom-full bg-card/80 backdrop-blur-sm w-full rounded-t-md">
                     <div className="relative w-fit">
                         <Image src={imagePreview} alt="Image preview" width={80} height={80} className="rounded-md" />
                          <Button variant="ghost" size="icon" className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-muted text-muted-foreground" onClick={handleRemoveImage}>
@@ -966,7 +972,7 @@ export function ChatPageClient({
                 </div>
             )}
              {showCamera && (
-                <div className="p-2 absolute bottom-full bg-card w-full rounded-t-md">
+                <div className="p-2 absolute bottom-full bg-card/80 backdrop-blur-sm w-full rounded-t-md">
                     <div className="relative">
                         <video ref={videoRef} className="w-full aspect-video rounded-md bg-black" autoPlay muted />
                         {!hasCameraPermission && (

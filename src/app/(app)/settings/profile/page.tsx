@@ -85,7 +85,7 @@ export default function EditProfilePage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 pt-6">
-      <Card className="w-full max-w-2xl mx-auto animate-aurora-glow border-primary/20 shadow-2xl bg-black/30 backdrop-blur-md">
+      <Card className="w-full max-w-2xl mx-auto animate-aurora-glow border-primary/20 shadow-2xl bg-card/60 backdrop-blur-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Edit Profile</CardTitle>
           <CardDescription>
@@ -121,7 +121,7 @@ export default function EditProfilePage() {
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="bg-black/20 border-white/10 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
+                    className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
                   />
                 </div>
                 <div className="space-y-2">
@@ -131,7 +131,7 @@ export default function EditProfilePage() {
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="bg-black/20 border-white/10 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
+                    className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
                   />
                 </div>
               </div>
@@ -144,7 +144,7 @@ export default function EditProfilePage() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 placeholder="Tell us a little about yourself"
-                className="bg-black/20 border-white/10 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
+                className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
               />
             </div>
 

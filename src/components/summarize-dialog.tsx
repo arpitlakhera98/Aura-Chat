@@ -58,7 +58,7 @@ export function SummarizeDialog({ messages }: { messages: Message[] }) {
           <span className="sr-only">Summarize</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-black/80 border-white/10 text-white">
+      <DialogContent className="sm:max-w-md bg-background/60 backdrop-blur-md border-primary/30 text-white">
         <DialogHeader>
           <DialogTitle>Conversation Summary</DialogTitle>
           <DialogDescription>

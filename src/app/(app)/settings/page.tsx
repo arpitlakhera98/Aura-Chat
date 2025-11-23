@@ -33,7 +33,7 @@ const SettingsListItem = ({
     const content = (
         <div 
         onClick={onClick}
-        className="flex items-center gap-4 px-4 py-3 bg-white/5 border-t border-white/10 hover:bg-white/10 transition-colors cursor-pointer rounded-lg shadow-lg">
+        className="flex items-center gap-4 px-4 py-3 bg-card/50 border-t border-white/10 hover:bg-card/80 transition-colors cursor-pointer rounded-lg shadow-lg">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20">
             <Icon className="h-5 w-5 text-primary" />
         </div>
@@ -69,11 +69,13 @@ export default function SettingsPage() {
     router.push('/login');
   }
   
-  if (!isClient || !currentUser) return (
-    <div className="flex h-full items-center justify-center">
-        <p>Loading settings...</p>
-    </div>
-  );
+  if (!isClient || !currentUser) {
+    return (
+      <div className="flex h-full items-center justify-center">
+          <p>Loading settings...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col text-card-foreground p-4">
@@ -83,7 +85,7 @@ export default function SettingsPage() {
 
       <main className="flex-1 overflow-y-auto space-y-6">
         <Link href={`/profile/${currentUser.id}`} className="px-4 block">
-             <div className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-white/10 shadow-lg hover:bg-black/40 transition-colors">
+             <div className="flex items-center gap-4 p-4 rounded-lg bg-card/60 backdrop-blur-md border border-white/10 shadow-lg hover:bg-card/80 transition-colors">
               <Avatar className="h-16 w-16 border-2 border-primary">
                 <AvatarImage asChild src={currentUser.avatarUrl}>
                   <Image

@@ -51,7 +51,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-transparent p-4">
-      <Card className="w-full max-w-md animate-aurora-glow border-primary/20 shadow-2xl bg-black/30 backdrop-blur-md">
+      <Card className="w-full max-w-md animate-aurora-glow border-primary/20 shadow-2xl bg-card/60 backdrop-blur-md">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <Logo />
@@ -72,18 +72,17 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-black/20 border-white/10 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
+                className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
+              <Label htmlFor="password">Password</Label>              <Input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="bg-black/20 border-white/10 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
+                className="bg-input/80 border-white/20 focus:ring-primary/80 focus:shadow-[0_0_15px_hsl(var(--primary))]"
               />
             </div>
           </CardContent>

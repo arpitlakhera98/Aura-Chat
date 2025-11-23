@@ -97,7 +97,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   if (isBlocked) {
     return (
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-            <Card className="overflow-hidden bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow text-center">
+            <Card className="overflow-hidden bg-card/60 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow text-center">
                 <CardHeader>
                     <ShieldBan className="mx-auto h-16 w-16 text-destructive" />
                 </CardHeader>
@@ -131,7 +131,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <Card className="overflow-hidden bg-black/30 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
+      <Card className="overflow-hidden bg-card/60 backdrop-blur-md border border-white/10 shadow-lg animate-aurora-glow">
         <CardHeader className="relative p-0 h-48 flex items-center justify-center">
           <Image
             src="https://picsum.photos/seed/header-bg/1200/200"
@@ -165,7 +165,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                 <Edit2 className="h-4 w-4" />
                             </Button>
                              <AlertDialog open={isNicknameDialogOpen} onOpenChange={setIsNicknameDialogOpen}>
-                                <AlertDialogContent>
+                                <AlertDialogContent className="bg-background/60 backdrop-blur-md border-primary/30 text-white">
                                     <AlertDialogHeader>
                                     <AlertDialogTitle>Edit Nickname</AlertDialogTitle>
                                     <AlertDialogDescription>
@@ -179,6 +179,7 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
                                             value={nicknameInput}
                                             onChange={(e) => setNicknameInput(e.target.value)}
                                             placeholder="Enter nickname"
+                                            className="bg-input/80 border-white/20"
                                         />
                                     </div>
                                     <AlertDialogFooter>

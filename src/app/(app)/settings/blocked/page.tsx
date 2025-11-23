@@ -48,7 +48,7 @@ export default function BlockedUsersPage() {
 
   return (
     <div className="flex-1 p-4 md:p-8 pt-6">
-      <Card className="w-full max-w-2xl mx-auto animate-aurora-glow border-primary/20 shadow-2xl bg-black/30 backdrop-blur-md">
+      <Card className="w-full max-w-2xl mx-auto animate-aurora-glow border-primary/20 shadow-2xl bg-card/60 backdrop-blur-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Blocked Users</CardTitle>
           <CardDescription>
@@ -101,4 +101,3 @@ export default function BlockedUsersPage() {
     </div>
   );
 }
-
