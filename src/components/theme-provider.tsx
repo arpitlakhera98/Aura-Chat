@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light' | 'system' | 'zinc' | 'rose' | 'blue' | 'green' | 'yellow' | 'orange' | 'purple';
 
 type ThemeProviderState = {
   theme: Theme;
@@ -43,15 +43,26 @@ export function ThemeProvider({
   React.useEffect(() => {
     const root = window.document.documentElement;
 
-    root.classList.remove('light', 'dark');
+    const themeClasses = ['light', 'dark', 'zinc', 'rose', 'blue', 'green', 'yellow', 'orange', 'purple'];
+    root.classList.remove(...themeClasses);
 
+    let effectiveTheme = theme;
     if (theme === 'system' && enableSystem) {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-      return;
+      effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-
-    root.classList.add(theme);
+    
+    // Always add the base theme (light or dark)
+    if (['zinc', 'rose', 'blue', 'green', 'yellow', 'orange', 'purple'].includes(effectiveTheme)) {
+        root.classList.add('dark');
+    } else {
+        root.classList.add(effectiveTheme);
+    }
+    
+    // Add the specific color theme class if it's not light or dark
+    if (effectiveTheme !== 'light' && effectiveTheme !== 'dark') {
+      root.classList.add(effectiveTheme);
+    }
+    
   }, [theme, enableSystem]);
 
   const value = {
